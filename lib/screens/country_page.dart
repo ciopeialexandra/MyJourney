@@ -3,6 +3,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/town_page.dart';
 
+final TextEditingController _countryAnswer = TextEditingController();
 
 class TripPage extends StatefulWidget {
   const TripPage({super.key});
@@ -12,7 +13,6 @@ class TripPage extends StatefulWidget {
 }
 
 class _TripPageState extends State<TripPage> {
-  final TextEditingController _controllerAnswer = TextEditingController();
   List<String> validCountries = [
     "Andorra",
     "Angola",
@@ -168,7 +168,7 @@ class _TripPageState extends State<TripPage> {
   Widget _nextButton() {
     return ElevatedButton(
       onPressed: () {
-        String enteredCountry = _controllerAnswer.text;
+        String enteredCountry = _countryAnswer.text;
         if (validCountries.contains(enteredCountry)) {
           Navigator.push(
             context,
@@ -232,7 +232,7 @@ class _TripPageState extends State<TripPage> {
                   const SizedBox(height: 70),
                   _animatedText(),
                   const SizedBox(height: 100),
-                  _entryField('Your answer', _controllerAnswer),
+                  _entryField('Your answer', _countryAnswer),
                 ],
               ),
             ),

@@ -11,10 +11,8 @@ class TownPage extends StatefulWidget {
   @override
   State<TownPage> createState() => _TownPageState();
 }
-
+final TextEditingController _townAnswer = TextEditingController();
 class _TownPageState extends State<TownPage> {
-  final TextEditingController _controllerAnswer = TextEditingController();
-
   Widget _title(){
     return const Text("My Journey");
   }
@@ -75,7 +73,7 @@ class _TownPageState extends State<TownPage> {
                   const SizedBox(height: 70),
                   _animatedText(),
                   const SizedBox(height: 100),
-                  _entryField('Your answer', _controllerAnswer),
+                  _entryField('Your answer', _townAnswer),
                 ],
               ),
             ),

@@ -11,9 +11,8 @@ class AttractionsPage extends StatefulWidget {
   @override
   State<AttractionsPage> createState() => _AttractionsPageState();
 }
-
+final TextEditingController _attractionsAnswer = TextEditingController();
 class _AttractionsPageState extends State<AttractionsPage> {
-  final TextEditingController _controllerAnswer = TextEditingController();
 
   Widget _title(){
     return const Text("My Journey");
@@ -75,7 +74,7 @@ class _AttractionsPageState extends State<AttractionsPage> {
                   const SizedBox(height: 70),
                   _animatedText(),
                   const SizedBox(height: 100),
-                  _entryField('Your answer', _controllerAnswer),
+                  _entryField('Your answer', _attractionsAnswer),
                 ],
               ),
             ),
