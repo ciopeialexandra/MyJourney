@@ -1,18 +1,19 @@
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
-
+import '../data/globals.dart';
 import 'images_page.dart';
 
 
 class AttractionsPage extends StatefulWidget {
-  const AttractionsPage({super.key});
-
+   const AttractionsPage({super.key});
   @override
   State<AttractionsPage> createState() => _AttractionsPageState();
 }
-final TextEditingController _attractionsAnswer = TextEditingController();
+
 class _AttractionsPageState extends State<AttractionsPage> {
+  final TextEditingController _attractionsAnswer = TextEditingController();
+
 
   Widget _title(){
     return const Text("My Journey");
@@ -28,15 +29,19 @@ class _AttractionsPageState extends State<AttractionsPage> {
       ),
     );
   }
+  void _setTrip(){
+    trip.setTripAttraction(_attractionsAnswer.text);
+  }
   Widget _nextButton() {
     return ElevatedButton(
       onPressed: () {
+        _setTrip();
         setState(() {
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                  const ImagesPage()));
+                      const ImagesPage()));
         });
       },
       child: const Text('Next'),

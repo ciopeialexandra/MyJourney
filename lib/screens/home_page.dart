@@ -25,7 +25,16 @@ class _HomePageState extends State<HomePage> {
 
 
   Widget _signOutButton() {
-    return ElevatedButton(onPressed: signOut, child: const Text('Sign Out'));
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: ElevatedButton(
+            onPressed: signOut,
+            style: OutlinedButton.styleFrom(
+                side: BorderSide.none
+            ),
+            child: const Text('Sign Out')
+        )
+    );
   }
   Widget _beenButton() {
     return ElevatedButton(
@@ -47,6 +56,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: _title(),
+        actions: [
+          _signOutButton(),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,

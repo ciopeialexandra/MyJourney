@@ -1,31 +1,62 @@
-
-
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../data/globals.dart';
 import 'home_page.dart';
-
+import 'package:uuid/uuid.dart';
 
 class ImagesPage extends StatefulWidget {
   const ImagesPage({super.key});
-
   @override
   State<ImagesPage> createState() => _ImagesPageState();
 }
-final TextEditingController _imagesAnswer = TextEditingController();
+
 class _ImagesPageState extends State<ImagesPage> {
   XFile? image;
-
   final ImagePicker picker = ImagePicker();
+  var uuid = const Uuid().v1();
+  void _createTrip() async{
+    User? user = FirebaseAuth.instance.currentUser;
+     String? userId = user?.uid;
+    DatabaseReference ref = FirebaseDatabase.instance.ref("trip/$uuid");
+      await ref.set({
+        "userId": userId,
+        "country": trip.getTripCountry(),
+        "city": trip.getTripCity(),
+        "attractions": {
+          "attraction": trip.getTripAttraction()
+        },
+        "images":{
+          "image": trip.getTripImage()
+        }
+      });
+  }
 
+  void _setTrip(){
+    trip.setTripImage(image!.name);
+  }
   //we can upload image from camera or from gallery based on parameter
   Future getImage(ImageSource media) async {
     var img = await picker.pickImage(source: media);
 
     setState(() {
       image = img;
+
     });
+  }
+  void uploadImage() async{
+    final storageRef = FirebaseStorage.instance.ref();
+    final String imageName = trip.getTripImage();
+    final imagesRef = storageRef.child("images/$imageName");
+    try {
+      await imagesRef.putFile(File(image!.path));
+    } on Exception catch (e) {
+      print("Error upload image");
+    }
   }
   void myAlert() {
     showDialog(
@@ -40,10 +71,10 @@ class _ImagesPageState extends State<ImagesPage> {
               child: Column(
                 children: [
                   ElevatedButton(
-                    //if user click this button, user can upload image from gallery
                     onPressed: () {
                       Navigator.pop(context);
                       getImage(ImageSource.gallery);
+
                     },
                     child: const Row(
                       children: [
@@ -53,7 +84,6 @@ class _ImagesPageState extends State<ImagesPage> {
                     ),
                   ),
                   ElevatedButton(
-                    //if user click this button. user can upload image from camera
                     onPressed: () {
                       Navigator.pop(context);
                       getImage(ImageSource.camera);
@@ -74,20 +104,11 @@ class _ImagesPageState extends State<ImagesPage> {
   Widget _title(){
     return const Text("My Journey");
   }
-  Widget _entryField(
-      String title,
-      TextEditingController controller
-      ){
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-          labelText: title
-      ),
-    );
-  }
   Widget _nextButton() {
     return ElevatedButton(
       onPressed: () {
+        _setTrip();
+        _createTrip();
         setState(() {
           Navigator.push(
               context,
@@ -95,6 +116,7 @@ class _ImagesPageState extends State<ImagesPage> {
                   builder: (context) =>
                   const HomePage()));
         });
+        uploadImage();
       },
       child: const Text('Done'),
     );
@@ -146,7 +168,6 @@ class _ImagesPageState extends State<ImagesPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.file(
-                        //to show image, you type like this.
                         File(image!.path),
                         fit: BoxFit.cover,
                         width: MediaQuery.of(context).size.width,

@@ -1,18 +1,16 @@
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
-
+import '../data/globals.dart';
 import 'attractions_page.dart';
-
 
 class TownPage extends StatefulWidget {
   const TownPage({super.key});
-
   @override
   State<TownPage> createState() => _TownPageState();
 }
-final TextEditingController _townAnswer = TextEditingController();
 class _TownPageState extends State<TownPage> {
+  final TextEditingController _townAnswer = TextEditingController();
   Widget _title(){
     return const Text("My Journey");
   }
@@ -30,12 +28,13 @@ class _TownPageState extends State<TownPage> {
   Widget _nextButton() {
     return ElevatedButton(
       onPressed: () {
+        _setTrip();
         setState(() {
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                  const AttractionsPage()));
+                   const AttractionsPage()));
         });
       },
       child: const Text('Next'),
@@ -54,6 +53,10 @@ class _TownPageState extends State<TownPage> {
         isRepeatingAnimation: false,
       ),
     );
+  }
+  void _setTrip(){
+    String city =_townAnswer.text;
+    trip.setTripCity(city);
   }
 
   @override

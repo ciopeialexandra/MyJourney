@@ -6,7 +6,12 @@ import 'package:firebase_core/firebase_core.dart';
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: const FirebaseOptions(apiKey: 'AIzaSyBbcROIWrD9tz66r2gGfVf7Mqv_bd0Crn0', appId: '1:1088224171052:android:2ce7abeafd41125c6b2d89', messagingSenderId: '1088224171052', projectId: 'myjourney-621e7')
+    options: const FirebaseOptions(
+      apiKey: 'AIzaSyBbcROIWrD9tz66r2gGfVf7Mqv_bd0Crn0',
+      appId: '1:1088224171052:android:2ce7abeafd41125c6b2d89',
+      messagingSenderId: '1088224171052', projectId: 'myjourney-621e7',
+      storageBucket: "myjourney-621e7.appspot.com",
+    )
   );
   runApp(const MyApp());
 }
