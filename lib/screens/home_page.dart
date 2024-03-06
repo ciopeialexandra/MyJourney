@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/auth.dart';
+import 'package:myjorurney/navigate.dart';
 import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
@@ -54,6 +55,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: NavMenu(),
       appBar: AppBar(
         title: _title(),
         actions: [

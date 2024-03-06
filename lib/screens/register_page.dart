@@ -1,7 +1,10 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/auth.dart';
 import 'package:myjorurney/screens/login_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import 'home_page.dart';
 
 
 class RegisterPage extends StatefulWidget {
@@ -19,11 +22,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
+      // Attempt to create user account
       await Auth().createUserWithEmailAndPassword(
-          email: _controllerEmail.text,
-          password: _controllerPassword.text
+        email: _controllerEmail.text,
+        password: _controllerPassword.text,
       );
+      // If successful, clear any previous error message
+      setState(() {
+        errorMessage = '';
+      });
     } on FirebaseAuthException catch (e) {
+      // If an error occurs, update errorMessage with the error message
       setState(() {
         errorMessage = e.message;
       });
@@ -46,10 +55,38 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _errorMessage(){
     return Text(errorMessage == '' ?'' : 'Humm ? $errorMessage ');
   }
+  void _createUser() async{
+    String name = _controllerName.text;
+    String email = _controllerEmail.text;
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userId = user?.uid;
+    DatabaseReference ref = FirebaseDatabase.instance.ref("user/$userId");
+    await ref.set({
+      "name": name,
+      "email":email,
+      "friends": {
+      },
+    });
+  }
   Widget _submitButton(){
     return ElevatedButton(
-        onPressed: createUserWithEmailAndPassword,
-        child: const Text( 'Register')
+        onPressed: () async {
+          // Wait for the registration process to complete
+          await createUserWithEmailAndPassword();
+
+          // After registration, check if there's no error message
+          // and navigate to HomePage
+          if(errorMessage == '') {
+            _createUser();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
+            );
+          }
+        },
+        child: const Text('Register')
     );
   }
   Widget _loginOrRegisterButton(){
