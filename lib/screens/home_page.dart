@@ -5,6 +5,8 @@ import 'package:myjorurney/navigate.dart';
 import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'addfriend_page.dart';
 
 class HomePage extends StatefulWidget {
    const HomePage({super.key});
@@ -15,7 +17,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final User? user = Auth().currentUser;
-
   Future<void> signOut() async {
     await Auth().signOut();
   }
@@ -51,6 +52,25 @@ class _HomePageState extends State<HomePage> {
       child: const Text('Where have you been ?'),
     );
   }
+  Widget _addFriendButton(){
+    return ElevatedButton(
+      onPressed: () async {
+        if(await Permission.contacts.request().isGranted) {
+          setState(() {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                    const AddFriendPage()));
+          });
+        }
+        else{
+
+        }
+      },
+      child: const Text('Add friends'),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +79,8 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: _title(),
         actions: [
-          _signOutButton(),
+         // _signOutButton(),
+          _addFriendButton()
         ],
       ),
       body: Column(
