@@ -4,17 +4,13 @@ import 'package:flutter/material.dart';
 import '../data/globals.dart';
 import 'images_page.dart';
 
-
 class AttractionsPage extends StatefulWidget {
    const AttractionsPage({super.key});
   @override
   State<AttractionsPage> createState() => _AttractionsPageState();
 }
-
 class _AttractionsPageState extends State<AttractionsPage> {
   final TextEditingController _attractionsAnswer = TextEditingController();
-
-
   Widget _title(){
     return const Text("My Journey");
   }

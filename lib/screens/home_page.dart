@@ -5,6 +5,7 @@ import 'package:myjorurney/navigate.dart';
 import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
+import 'package:myjorurney/screens/plan-trip_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'addfriend_page.dart';
 
@@ -52,7 +53,7 @@ class _HomePageState extends State<HomePage> {
       child: const Text('Where have you been ?'),
     );
   }
-  Widget _addFriendButton(){
+  Widget _planButton(){
     return ElevatedButton(
       onPressed: () async {
         if(await Permission.contacts.request().isGranted) {
@@ -61,14 +62,13 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                    const AddFriendPage()));
+                    const PlanTripPage()));
           });
         }
         else{
-
         }
       },
-      child: const Text('Add friends'),
+      child: const Text('Plan a trip'),
     );
   }
 
@@ -79,8 +79,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: _title(),
         actions: [
-         // _signOutButton(),
-          _addFriendButton()
+          _signOutButton(),
         ],
       ),
       body: Column(
@@ -115,14 +114,12 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          Row(
+          Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(40),
-                child: _beenButton(),
-              ),
+              _beenButton(),
+              _planButton()
             ],
           ),
         ],
