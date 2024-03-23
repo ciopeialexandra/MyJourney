@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myjorurney/screens/favourites_screen.dart';
 
 class NavMenu extends StatelessWidget {
   @override
@@ -19,10 +20,14 @@ class NavMenu extends StatelessWidget {
             onTap: () => {},
           ),
           ListTile(
-            leading: const Icon(Icons.verified_user),
-            title: const Text('Profile'),
-            onTap: () => {Navigator.of(context).pop()},
-          ),
+            leading: const Icon(Icons.favorite_outlined),
+            title: const Text('Favourites'),
+            onTap: () => {
+              Navigator.push(
+              context,
+              MaterialPageRoute(
+              builder: (context) =>const FavouritePage()))
+            }),
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),

@@ -19,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _controllerName = TextEditingController();
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
+  final TextEditingController _controllerTelephone = TextEditingController();
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
@@ -58,14 +59,14 @@ class _RegisterPageState extends State<RegisterPage> {
   void _createUser() async{
     String name = _controllerName.text;
     String email = _controllerEmail.text;
+    String telephone = _controllerTelephone.text;
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
     DatabaseReference ref = FirebaseDatabase.instance.ref("user/$userId");
     await ref.set({
       "name": name,
       "email":email,
-      "friends": {
-      },
+      "telephone": telephone,
     });
   }
   Widget _submitButton(){
@@ -118,6 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
           children: <Widget>[
             _entryField('name', _controllerName),
             _entryField('email', _controllerEmail),
+            _entryField('telephone', _controllerTelephone),
             _entryField('password', _controllerPassword),
             _errorMessage(),
             _submitButton(),

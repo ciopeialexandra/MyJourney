@@ -7,7 +7,7 @@ import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'addfriend_page.dart';
+import 'add-friend_page.dart';
 
 class HomePage extends StatefulWidget {
    const HomePage({super.key});
