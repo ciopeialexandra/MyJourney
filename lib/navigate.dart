@@ -15,8 +15,8 @@ class NavMenu extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.input),
-            title: const Text('Welcome'),
+            leading: const Icon(Icons.person),
+            title: const Text('My profile'),
             onTap: () => {},
           ),
           ListTile(

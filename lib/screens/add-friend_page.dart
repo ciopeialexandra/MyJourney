@@ -4,12 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:myjorurney/screens/plan-result_page.dart';
-import 'package:provider/provider.dart';
+import 'package:myjorurney/screens/home_page.dart';
 import 'package:uuid/uuid.dart';
 import '../data/globals.dart';
-import '../services/chat-provider.dart';
-import '../services/models-provider.dart';
 
 class AddFriendPage extends StatefulWidget {
   const AddFriendPage({super.key});
@@ -25,6 +22,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   TextEditingController searchController = TextEditingController();
   TextEditingController budgetController = TextEditingController();
   String contactSelected = "";
+  late List<bool> isSelected;
 
   @override
   void initState(){
@@ -71,7 +69,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Widget _title(){
     return const Text("My Journey");
   }
-
   Widget _nextButton() {
     plan.setPlanFriend(contactSelected);
     return ElevatedButton(
@@ -81,32 +78,53 @@ class _AddFriendPageState extends State<AddFriendPage> {
               context,
               MaterialPageRoute(
                   builder: (context) =>
-              MultiProvider(
-                providers: [
-                  ChangeNotifierProvider(
-                    create: (_) => ModelsProvider(),
-                  ),
-                  ChangeNotifierProvider(
-                    create: (_) => ChatProvider(),
-                  ),
-                ],
-                child: MaterialApp(
-                  title: 'Flutter ChatBOT',
-                  debugShowCheckedModeBanner: false,
-                  theme: ThemeData(
-                      scaffoldBackgroundColor: Colors.white,
-                      appBarTheme: const AppBarTheme(
-                        color: Colors.white,
-                      )),
-                  home: const ChatScreen(),
+              // MultiProvider(
+              //   providers: [
+              //     ChangeNotifierProvider(
+              //       create: (_) => ModelsProvider(),
+              //     ),
+              //     ChangeNotifierProvider(
+              //       create: (_) => ChatProvider(),
+              //     ),
+              //   ],
+              //   child: MaterialApp(
+              //     title: 'Flutter ChatBOT',
+              //     debugShowCheckedModeBanner: false,
+              //     theme: ThemeData(
+              //         scaffoldBackgroundColor: Colors.white,
+              //         appBarTheme: const AppBarTheme(
+              //           color: Colors.white,
+              //         )),
+                  requestSend(context),
                 ),
-              )
-              )
           );
           _createPlan();
         });
       },
       child: const Text('Next'),
+    );
+  }
+  Widget requestSend(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Request Send'),
+      content: const Text('The request has been sent to your friends'),
+      actions: <Widget>[
+        TextButton(
+        onPressed: () {
+          setState(() {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                  const HomePage(),
+                )
+            );
+          }
+          );
+          },
+          child: const Text('Done'),
+        ),
+      ],
     );
   }
   void _createPlan() async{
@@ -131,7 +149,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
   @override
   Widget build(BuildContext context) {
     bool isSearching = searchController.text.isNotEmpty;
-    int _selectedIndex = 0;
+    if(isSelected.isEmpty) {
+      isSelected = List<bool>.filled(contacts.length, false);
+    }
     return Scaffold(
       appBar: AppBar(
         title: _title(),
@@ -158,34 +178,33 @@ class _AddFriendPageState extends State<AddFriendPage> {
                 )
               ),
             ),
-            Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: isSearching ? contactsFiltered.length : contacts.length,
-                  itemBuilder: (context, index) {
-                    Contact contact = isSearching ? contactsFiltered[index] : contacts[index];
-                    return ListTile(
-                      title: Text(contact.displayName.toString()),
-                      subtitle: Text(contact.phones!.elementAt(0).value.toString()),
-                      leading: (contact.avatar != null && contact.avatar!.isNotEmpty) ?
-                      CircleAvatar(
-                        backgroundImage: MemoryImage(contact.avatar!),
-                      ) :
-                      CircleAvatar(
-                        child: Text(contact.initials()),
-                      ),
-                      tileColor: _selectedIndex == index ? Colors.blue.withOpacity(0.5) : null,
-                      selected: _selectedIndex == index,
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = _selectedIndex == index ? -1 : index;
-                          contactSelected = contact.phones!.elementAt(0).value.toString();
-                        });
-                      },
-                    );
-                  },
+        Expanded(
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: contacts.length,
+            itemBuilder: (context, index) {
+              Contact contact = contacts[index];
+              return ListTile(
+                title: Text(contact.displayName.toString()),
+                subtitle: Text(contact.phones!.elementAt(0).value.toString()),
+                leading: (contact.avatar != null && contact.avatar!.isNotEmpty)
+                    ? CircleAvatar(
+                  backgroundImage: MemoryImage(contact.avatar!),
                 )
-            ),
+                    : CircleAvatar(
+                  child: Text(contact.initials()),
+                ),
+                tileColor: isSelected[index] ? Colors.purple.withOpacity(0.3) : null,
+                onTap: () {
+                  setState(() {
+                      isSelected[index] = !isSelected[index];
+
+                  });
+                },
+              );
+            },
+          ),
+        ),
            Expanded(
                child: Align(
                  alignment: Alignment.bottomRight,

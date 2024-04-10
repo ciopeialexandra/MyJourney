@@ -65,7 +65,7 @@ class _FavouritePageState extends State<FavouritePage> {
         future: _planDetailsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else {
             return ListView(
               children: <Widget>[
@@ -73,7 +73,8 @@ class _FavouritePageState extends State<FavouritePage> {
                   padding: const EdgeInsets.all(8.0),
                   child: _animatedText(),
                 ),
-                ListView.builder(
+                ListView.separated(
+                  padding: const EdgeInsets.all(8),
                   shrinkWrap: true,
                   physics: const ClampingScrollPhysics(),
                   itemCount: plans.length,
@@ -91,8 +92,9 @@ class _FavouritePageState extends State<FavouritePage> {
                         ),
                       ),
                     );
-                  },
+                  }, separatorBuilder: (BuildContext context, int index) => const Divider(),
                 ),
+
               ],
             );
           }

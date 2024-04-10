@@ -6,7 +6,6 @@ import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'add-friend_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -55,23 +54,56 @@ class _HomePageState extends State<HomePage> {
   }
   Widget _planButton(){
     return ElevatedButton(
-      onPressed: () async {
-        if(await Permission.contacts.request().isGranted) {
-          setState(() {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                    const PlanTripPage()));
-          });
-        }
-        else{
-        }
-      },
+  //     onPressed: () async {
+  //       if(await Permission.contacts.request().isGranted) {
+  //         setState(() {
+  //           Navigator.push(
+  //               context,
+  //               MaterialPageRoute(
+  //                   builder: (context) =>
+  //                   const PlanTripPage()));
+  //         });
+  //       }
+  //       else{
+  //       }
+  //     },
+  //     child: const Text('Plan a trip'),
+  //   );
+  //
+      onPressed: () => showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('Add friends'),
+          content: const Text('Do you want to go with a friend?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () =>  setState(() {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                        const AddFriendPage()));
+              }),
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () =>  setState(() {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                        const PlanTripPage(),
+                    )
+                );
+              }),
+              child: const Text('No'),
+            ),
+          ],
+        ),
+      ),
       child: const Text('Plan a trip'),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

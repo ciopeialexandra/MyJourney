@@ -52,6 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
       "isBeach": plan.getPlanSwim(),
       "isNature": plan.getPlanNature(),
       "isSwim": plan.getPlanSwim(),
+      "isTropical": plan.getPlanTropical(),
       "result":plan.getPlanResult()
     });
   }
@@ -159,18 +160,37 @@ class _ChatScreenState extends State<ChatScreen> {
       {required ModelsProvider modelsProvider,
         required ChatProvider chatProvider}) async {
     try {
-      String msg = "Can you tell me in which travel destination can someone go with a budget of ${plan.getPlanBudget()} euro, 7 days";
+      String days = "";
+      if(plan.isThree){
+        days = " 3 ";
+      }
+      else if(plan.isSeven){
+        days = " 7 ";
+      }
+      else if(plan.isTen){
+        days = " 10 ";
+      }
+      String msg = "Can you tell me in which travel destination can someone go with a budget of ${plan.getPlanBudget()} euro, ${days} days";
       if(plan.isShopping){
         msg = "$msg, for shopping ";
       }
       if(plan.isSwimming){
-        msg = "$msg, for going to the seaside ";
+        msg = "$msg, for going to the seaside and swim ";
       }
       if(plan.isHistoricalHeritage){
         msg = "$msg for visiting historical attractions ";
       }
       if(plan.isBigCity){
         msg = "$msg for visiting a big city ";
+      }
+      if(plan.isTropical){
+        msg = "$msg for visiting a tropical place ";
+      }
+      if(plan.isSkiing){
+        msg = "$msg for visiting the mountains and maybe skiing ";
+      }
+      if(plan.isNature){
+        msg = "$msg for being in the nature ";
       }
       await chatProvider.sendMessageAndGetAnswers(
           msg: msg, chosenModelId: modelsProvider.getCurrentModel);

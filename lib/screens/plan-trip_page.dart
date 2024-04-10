@@ -29,6 +29,10 @@ class _PlanTripPageState extends State<PlanTripPage> {
   bool isPressedAttractions = false;
   bool isPressedShopping = false;
   bool isPressedNature = false;
+  bool isPressedTopical = false;
+  bool isPressedThree = false;
+  bool isPressedSeven = false;
+  bool isPressedTen = false;
 
   @override
   void initState() {
@@ -75,13 +79,13 @@ class _PlanTripPageState extends State<PlanTripPage> {
     return const Text("My Journey");
   }
 
-  Widget _text() {
-    return const DefaultTextStyle(
-      style: TextStyle(
+  Widget _text(String text) {
+    return DefaultTextStyle(
+      style: const TextStyle(
           fontSize: 20.0,
-          color: Colors.black
+          color: Colors.black26
       ),
-      child: Text('What would you like?'),
+      child: Text(text),
     );
   }
 
@@ -108,6 +112,10 @@ class _PlanTripPageState extends State<PlanTripPage> {
       plan.setPlanSki(isPressedMountain);
       plan.setPlanSwim(isPressedBeach);
       plan.setPlanNature(isPressedNature);
+      plan.setPlanTropical(isPressedTopical);
+      plan.setPlanThree(isPressedThree);
+      plan.setPlanSeven(isPressedSeven);
+      plan.setPlanTen(isPressedTen);
 
     }
     return TextButton(
@@ -161,7 +169,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
           ],
         ),
       ),
-      child: const Text('Show Dialog'),
+      child: const Text('Continue'),
     );
   }
 
@@ -280,7 +288,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
         children: [
           Icon(Icons.castle_sharp),
           // Adjust the spacing between icon and text as needed
-          Text('Historical heritage'),
+          Text('Historical'),
         ],
       ),
     );
@@ -302,6 +310,87 @@ class _PlanTripPageState extends State<PlanTripPage> {
           Icon(Icons.shopping_bag_outlined),
           // Adjust the spacing between icon and text as needed
           Text('Shopping'),
+        ],
+      ),
+    );
+  }
+  Widget _threeButton() {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          isPressedThree = !isPressedThree;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+          backgroundColor: isPressedThree ? Colors.purpleAccent : Colors
+              .white
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Adjust the spacing between icon and text as needed
+          Text('3 days'),
+        ],
+      ),
+    );
+  }
+  Widget _sevenButton() {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          isPressedSeven = !isPressedSeven;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+          backgroundColor: isPressedSeven ? Colors.purpleAccent : Colors
+              .white
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Adjust the spacing between icon and text as needed
+          Text('7 days'),
+        ],
+      ),
+    );
+  }
+  Widget _tenButton() {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          isPressedTen = !isPressedTen;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+          backgroundColor: isPressedTen ? Colors.purpleAccent : Colors
+              .white
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Adjust the spacing between icon and text as needed
+          Text('10 days'),
+        ],
+      ),
+    );
+  }
+  Widget _tropicalButton() {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          isPressedShopping = !isPressedShopping;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+          backgroundColor: isPressedShopping ? Colors.purpleAccent : Colors
+              .white
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.sunny),
+          // Adjust the spacing between icon and text as needed
+          Text('Tropical'),
         ],
       ),
     );
@@ -335,12 +424,12 @@ class _PlanTripPageState extends State<PlanTripPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             _animatedText(),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             _entryField("Your budget", budgetController),
             const SizedBox(height: 30),
             _dateButton(),
             const SizedBox(height: 20),
-            _text(),
+            _text('What would you like?'),
             const SizedBox(height: 20),
             Row(
               children: <Widget>[
@@ -352,10 +441,25 @@ class _PlanTripPageState extends State<PlanTripPage> {
         Row(
           children: <Widget>[
             _attractionsButton(),
-            _shoppingButton(),
+            _natureButton(),
             ],
         ),
-            _natureButton(),
+            Row(
+              children: <Widget>[
+                _tropicalButton(),
+                _shoppingButton(),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _text("How many days?"),
+            const SizedBox(height: 20),
+            Row(
+              children: <Widget>[
+                _threeButton(),
+                _sevenButton(),
+                _tenButton(),
+              ],
+            ),
             Expanded(
               child: Align(
                 alignment: Alignment.bottomRight,

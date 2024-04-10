@@ -9,9 +9,13 @@ class Plan {
   bool isSwimming;
   bool isShopping;
   bool isNature;
+  bool isTropical;
+  bool isThree;
+  bool isSeven;
+  bool isTen;
   String result;
 
-  Plan(this.budget, this.date, this.friend,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.result);
+  Plan(this.budget, this.date, this.friend,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isThree,this.isSeven,this.isTen,this.result);
 
   void setPlanBudget(String budget) {
     this.budget = budget;
@@ -42,6 +46,18 @@ class Plan {
   }
   void setPlanResult(String value) {
     result = value;
+  }
+  void setPlanTropical(bool value) {
+    isTropical = value;
+  }
+  void setPlanThree(bool value) {
+    isThree = value;
+  }
+  void setPlanSeven(bool value) {
+    isSeven = value;
+  }
+  void setPlanTen(bool value) {
+    isTen = value;
   }
   // void setPlanStartDate(DateTime value) {
   //   startDate = value;
@@ -77,6 +93,18 @@ class Plan {
     return isNature;
   }
   String getPlanResult(){
+    return result;
+  }
+  String getPlanTropical(){
+    return result;
+  }
+  String getPlanThree(){
+    return result;
+  }
+  String getPlanSeven(){
+    return result;
+  }
+  String getPlanTen(){
     return result;
   }
   // DateTime getPlanStartDate(){
