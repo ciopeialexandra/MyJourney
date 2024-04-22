@@ -2,7 +2,6 @@
 class Plan {
   String budget;
   String date;
-  String friend;
   bool isSkiing;
   bool isBigCity;
   bool isHistoricalHeritage;
@@ -15,16 +14,13 @@ class Plan {
   bool isTen;
   String result;
 
-  Plan(this.budget, this.date, this.friend,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isThree,this.isSeven,this.isTen,this.result);
+  Plan(this.budget, this.date,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isThree,this.isSeven,this.isTen,this.result);
 
   void setPlanBudget(String budget) {
     this.budget = budget;
   }
   void setPlanDate(String date) {
     this.date = date;
-  }
-  void setPlanFriend(String friend) {
-    this.friend = friend;
   }
   void setPlanSki(bool value) {
     isSkiing = value;
@@ -70,9 +66,6 @@ class Plan {
   }
   String getPlanDate(){
     return date;
-  }
-  String getPlanFriend(){
-    return friend;
   }
   bool getPlanSki(){
     return isSkiing;

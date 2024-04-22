@@ -1,11 +1,8 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:myjorurney/screens/home_page.dart';
-import 'package:uuid/uuid.dart';
+import 'package:myjorurney/screens/plan-trip_page.dart';
 import '../data/globals.dart';
 
 class AddFriendPage extends StatefulWidget {
@@ -22,7 +19,6 @@ class _AddFriendPageState extends State<AddFriendPage> {
   TextEditingController searchController = TextEditingController();
   TextEditingController budgetController = TextEditingController();
   String contactSelected = "";
-  late List<bool> isSelected;
 
   @override
   void initState(){
@@ -32,6 +28,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
       filterContacts();
     });
   }
+
   filterContacts(){
     List<Contact> _contacts = [];
     _contacts.addAll(contacts);
@@ -70,82 +67,28 @@ class _AddFriendPageState extends State<AddFriendPage> {
     return const Text("My Journey");
   }
   Widget _nextButton() {
-    plan.setPlanFriend(contactSelected);
+    for(int i=0;i<contacts.length;i++){
+      if(isSelected[i]==true){
+        isFriendsTrip = true;
+      }
+    }
     return ElevatedButton(
       onPressed: () {
         setState(() {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-              // MultiProvider(
-              //   providers: [
-              //     ChangeNotifierProvider(
-              //       create: (_) => ModelsProvider(),
-              //     ),
-              //     ChangeNotifierProvider(
-              //       create: (_) => ChatProvider(),
-              //     ),
-              //   ],
-              //   child: MaterialApp(
-              //     title: 'Flutter ChatBOT',
-              //     debugShowCheckedModeBanner: false,
-              //     theme: ThemeData(
-              //         scaffoldBackgroundColor: Colors.white,
-              //         appBarTheme: const AppBarTheme(
-              //           color: Colors.white,
-              //         )),
-                  requestSend(context),
-                ),
+                builder: (context) =>
+                const PlanTripPage(),
+              )
           );
-          _createPlan();
         });
       },
       child: const Text('Next'),
     );
   }
-  Widget requestSend(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Request Send'),
-      content: const Text('The request has been sent to your friends'),
-      actions: <Widget>[
-        TextButton(
-        onPressed: () {
-          setState(() {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                  const HomePage(),
-                )
-            );
-          }
-          );
-          },
-          child: const Text('Done'),
-        ),
-      ],
-    );
-  }
-  void _createPlan() async{
-    var uuid = const Uuid().v1();
-    User? user = FirebaseAuth.instance.currentUser;
-    String? userId = user?.uid;
-    DatabaseReference ref = FirebaseDatabase.instance.ref("plan/$uuid");
-    await ref.set({
-      "userId": userId,
-      "budget": plan.getPlanBudget(),
-      "date": plan.getPlanDate(),
-      "friend": plan.getPlanFriend(),
-      "isSki": plan.getPlanSki(),
-      "isCity": plan.getPlanCity(),
-      "isHistorical": plan.getPlanHistorical(),
-      "isBeach": plan.getPlanSwim(),
-      "isNature": plan.getPlanNature(),
-      "isSwim": plan.getPlanSwim(),
-      "result":plan.getPlanResult()
-    });
-  }
+
+
   @override
   Widget build(BuildContext context) {
     bool isSearching = searchController.text.isNotEmpty;
@@ -181,9 +124,9 @@ class _AddFriendPageState extends State<AddFriendPage> {
         Expanded(
           child: ListView.builder(
             shrinkWrap: true,
-            itemCount: contacts.length,
+            itemCount: isSearching ? contactsFiltered.length : contacts.length,
             itemBuilder: (context, index) {
-              Contact contact = contacts[index];
+              Contact contact = isSearching ? contactsFiltered[index] : contacts[index];
               return ListTile(
                 title: Text(contact.displayName.toString()),
                 subtitle: Text(contact.phones!.elementAt(0).value.toString()),

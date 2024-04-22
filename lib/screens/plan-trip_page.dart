@@ -1,12 +1,15 @@
 import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/add-friend_page.dart';
 import 'package:myjorurney/screens/plan-result_page.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../data/globals.dart';
 import '../services/chat-provider.dart';
 import '../services/models-provider.dart';
+import 'home_page.dart';
 
 class PlanTripPage extends StatefulWidget {
   const PlanTripPage({super.key});
@@ -29,10 +32,11 @@ class _PlanTripPageState extends State<PlanTripPage> {
   bool isPressedAttractions = false;
   bool isPressedShopping = false;
   bool isPressedNature = false;
-  bool isPressedTopical = false;
+  bool isPressedTropical = false;
   bool isPressedThree = false;
   bool isPressedSeven = false;
   bool isPressedTen = false;
+  String requestId = "";
 
   @override
   void initState() {
@@ -99,9 +103,80 @@ class _PlanTripPageState extends State<PlanTripPage> {
       ),
     );
   }
+  void _createPlanContact(String phoneNumber) async{
+    String? userId = await getUserIdByPhoneNumber(phoneNumber);
+    //aici trebuie verificat userId sa fie corect
+    var uuid = const Uuid().v1();
+    DatabaseReference ref = FirebaseDatabase.instance.ref("plan/$uuid");
+    await ref.set({
+      "userId": userId,
+      "budget": "",
+      "date": "",
+      "isSki": false,
+      "isCity": false,
+      "isHistorical": false,
+      "isBeach": false,
+      "isNature": false,
+      "isSwim": false,
+      "isTropical": false,
+      "requestId": requestId
+
+    });
+  }
+  void _createRequest() async{
+    var uuid = const Uuid().v1();
+    User? user = FirebaseAuth.instance.currentUser;
+    requestId = uuid;
+    DatabaseReference ref = FirebaseDatabase.instance.ref("request/$uuid");
+    await ref.set({
+      "finalResult": "",
+
+    });
+  }
+  Future<String?> getUserIdByPhoneNumber(String phoneNumber) async {
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshot = await ref.child('user').get();
+      for (var phone_local in snapshot.children) {
+        String userPhoneNumber = phone_local.child("telephone").value!.toString(); // Get the value of userId
+        if (userPhoneNumber == phoneNumber) {
+          print(phone_local.child("name").value.toString());
+          return phone_local.key;
+        }
+      }
+    } catch (error) {
+      return "No user found with this phone number";
+    }
+    return null;
+  }
+  void _createPlan() async{
+    var uuid = const Uuid().v1();
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userId = user?.uid;
+    DatabaseReference ref = FirebaseDatabase.instance.ref("plan/$uuid");
+    _createRequest();
+    await ref.set({
+      "userId": userId,
+      "budget": plan.getPlanBudget(),
+      "date": plan.getPlanDate(),
+      "isSki": plan.getPlanSki(),
+      "isCity": plan.getPlanCity(), //de adaugat verificari sa nu fie niciuna goala
+      "isHistorical": plan.getPlanHistorical(),
+      "isBeach": plan.getPlanSwim(),
+      "isNature": plan.getPlanNature(),
+      "isSwim": plan.getPlanSwim(),
+      "isTropical": plan.getPlanTropical(),
+      "requestId": requestId
+    });
+    for(int i=0;i<contacts.length;i++){
+      if(isSelected[i]==true){
+        _createPlanContact(contacts[i].phones!.elementAt(0).value.toString());
+      }
+    }
+  }
 
   Widget _nextButton() {
-    if(_selectedDateRange!=null) {
+    if (_selectedDateRange != null) {
       plan.setPlanBudget(budgetController.text);
       plan.setPlanDate(_selectedDateRange!.toString());
       // plan.setPlanStartDate(startDate!);
@@ -112,31 +187,16 @@ class _PlanTripPageState extends State<PlanTripPage> {
       plan.setPlanSki(isPressedMountain);
       plan.setPlanSwim(isPressedBeach);
       plan.setPlanNature(isPressedNature);
-      plan.setPlanTropical(isPressedTopical);
+      plan.setPlanTropical(isPressedTropical);
       plan.setPlanThree(isPressedThree);
       plan.setPlanSeven(isPressedSeven);
       plan.setPlanTen(isPressedTen);
-
     }
     return TextButton(
-      onPressed: () => showDialog<String>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Add friends'),
-          content: const Text('Do you want to go with a friend?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () =>  setState(() {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                        const AddFriendPage()));
-              }),
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () =>  setState(() {
+        onPressed: () =>
+            setState(() {
+              _createPlan();
+              if (isFriendsTrip == false) {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -163,16 +223,44 @@ class _PlanTripPageState extends State<PlanTripPage> {
                             )
                     )
                 );
-              }),
-              child: const Text('No'),
+              }
+              else {
+                // Show the AlertDialog
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return requestSend(context);
+                    }
+                );
+              }
+            }
             ),
-          ],
-        ),
-      ),
-      child: const Text('Continue'),
+        child: const Text('Continue')
     );
   }
-
+  Widget requestSend(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Request Send'),
+      content: const Text('The request has been sent to your friends'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            setState(() {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const HomePage(),
+                  )
+              );
+            }
+            );
+          },
+          child: const Text('Done'),
+        ),
+      ],
+    );
+  }
   Widget _dateButton() {
     return ElevatedButton(
       onPressed: _show,
@@ -378,11 +466,11 @@ class _PlanTripPageState extends State<PlanTripPage> {
     return ElevatedButton(
       onPressed: () {
         setState(() {
-          isPressedShopping = !isPressedShopping;
+          isPressedTropical = !isPressedTropical;
         });
       },
       style: ElevatedButton.styleFrom(
-          backgroundColor: isPressedShopping ? Colors.purpleAccent : Colors
+          backgroundColor: isPressedTropical ? Colors.purpleAccent : Colors
               .white
       ),
       child: const Row(

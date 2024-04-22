@@ -45,7 +45,6 @@ class _ChatScreenState extends State<ChatScreen> {
       "userId": userId,
       "budget": plan.getPlanBudget(),
       "date": plan.getPlanDate(),
-      "friend": plan.getPlanFriend(),
       "isSki": plan.getPlanSki(),
       "isCity": plan.getPlanCity(),
       "isHistorical": plan.getPlanHistorical(),
