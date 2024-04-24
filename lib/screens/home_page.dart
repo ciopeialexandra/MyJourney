@@ -9,7 +9,6 @@ import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
 import '../data/globals.dart';
-import '../data/plan.dart';
 import 'add-friend_page.dart';
 import 'notification_page.dart';
 
@@ -62,10 +61,11 @@ class _HomePageState extends State<HomePage> {
             .toString().isEmpty) {
           notificationNumber++;
         }
+        print(plan_local.child("budget").value!.toString());
       }
     } catch (error) {
       print("Error at searching requests");
-    };
+    }
     return notificationNumber;
   }
 
@@ -148,6 +148,7 @@ class _HomePageState extends State<HomePage> {
           actions: <Widget>[
             TextButton(
               onPressed: () =>  setState(() {
+                isPlanRequest = false;
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -158,6 +159,7 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () =>  setState(() {
+                isPlanRequest = false;
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -176,7 +178,6 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   Widget build(BuildContext context) {
-    isPlanRequest = false;
     return Scaffold(
       drawer: NavMenu(),
       appBar: AppBar(

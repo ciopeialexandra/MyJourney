@@ -1,20 +1,20 @@
 import 'package:myjorurney/data/plan.dart';
 
 class Request{
-  Plan plan;
-  String userName;
-  String phoneNumber;
+  List<Plan> plan;
+  List<String> userName;
+  List<String> phoneNumber;
 
   Request(this.plan,this.userName,this.phoneNumber);
 
   void setPlan(Plan plan) {
-    this.plan = plan;
+    this.plan.add(plan);
   }
   void setUserName(String userName) {
-    this.userName = userName;
+    this.userName.add(userName);
   }
   void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
+    this.phoneNumber.add(phoneNumber);
   }
 
 }

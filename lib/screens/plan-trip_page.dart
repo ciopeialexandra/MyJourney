@@ -2,7 +2,6 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:myjorurney/screens/add-friend_page.dart';
 import 'package:myjorurney/screens/plan-result_page.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -179,8 +178,6 @@ class _PlanTripPageState extends State<PlanTripPage> {
     if (_selectedDateRange != null) {
       plan.setPlanBudget(budgetController.text);
       plan.setPlanDate(_selectedDateRange!.toString());
-      // plan.setPlanStartDate(startDate!);
-      // plan.setPlanEndDate(endDate!);
       plan.setPlanHistorical(isPressedAttractions);
       plan.setPlanShopping(isPressedShopping);
       plan.setPlanCity(isPressedCity);
@@ -192,10 +189,15 @@ class _PlanTripPageState extends State<PlanTripPage> {
       plan.setPlanSeven(isPressedSeven);
       plan.setPlanTen(isPressedTen);
     }
+    if(isPlanRequest == true){
+
+    }
     return TextButton(
         onPressed: () =>
             setState(() {
-              _createPlan();
+              if(isPlanRequest == false) {
+                _createPlan();
+              }
               if (isFriendsTrip == false) {
                 Navigator.push(
                     context,

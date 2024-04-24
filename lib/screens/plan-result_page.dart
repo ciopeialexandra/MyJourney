@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -6,11 +7,13 @@ import 'package:myjorurney/screens/home_page.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../data/globals.dart';
+import '../services/api_constants.dart';
 import '../services/chat-provider.dart';
 import '../services/models-provider.dart';
 import '../widgets/chat_widget.dart';
 import '../widgets/text_widget.dart';
 import 'add-friend_page.dart';
+import 'package:http/http.dart' as http;
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -23,6 +26,9 @@ class _ChatScreenState extends State<ChatScreen> {
   late ScrollController _listScrollController;
   late FocusNode focusNode;
   bool resultDisplayed = false;
+  String img = "";
+  String _generatedImageUrl = '';
+
   @override
   void initState() {
     _listScrollController = ScrollController();
@@ -36,12 +42,41 @@ class _ChatScreenState extends State<ChatScreen> {
     focusNode.dispose();
     super.dispose();
   }
-  void _createPlan() async{
+  Future<void> generateImage() async {
+    final String apiKey = API_KEY;
+    final String prompt = img;
+
+    // Make a POST request to OpenAI API to generate image
+    final response = await http.post(
+      Uri.parse('https://api.openai.com/v1/images/generations'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
+      },
+      body: jsonEncode({
+        'prompt': prompt,
+        "n": 1,
+        "size": "512x512"
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Parse the API response and update the generated image URL
+      final responseData = jsonDecode(response.body);
+      setState(() {
+        _generatedImageUrl = responseData['data'][0]['url'];
+      });
+    } else {
+      // Handle API error
+      print('Error generating image: ${response.reasonPhrase}');
+    }
+  }
+  void _updatePlan() async{
     var uuid = const Uuid().v1();
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
-    DatabaseReference ref = FirebaseDatabase.instance.ref("plan/$uuid");
-    await ref.set({
+    //String planId = request[requestIndex].plan
+    final postData = {
       "userId": userId,
       "budget": plan.getPlanBudget(),
       "date": plan.getPlanDate(),
@@ -52,8 +87,10 @@ class _ChatScreenState extends State<ChatScreen> {
       "isNature": plan.getPlanNature(),
       "isSwim": plan.getPlanSwim(),
       "isTropical": plan.getPlanTropical(),
-      "result":plan.getPlanResult()
-    });
+    };
+    final Map<String, Map> updates = {};
+    updates["plan/$request[in"] = postData;
+    return FirebaseDatabase.instance.ref().update(updates);
   }
   Future<void> showResult(ModelsProvider modelsProvider, ChatProvider chatProvider) async {
     await sendMessageFCT(
@@ -88,7 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   const HomePage()));
         });
         plan.setPlanResult(resultMsg);
-        _createPlan();
+       // _updatePlan();
       },
       child: const Text('Add to wishlist'),
     );
@@ -139,8 +176,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       chatProvider.getChatList.length - 1 == index,
                     );
                   }
-                  ),
+              ),
             ),
+            if (_generatedImageUrl.isNotEmpty)
+              Image.network(_generatedImageUrl),
             _addButton(),
             _tryAgainButton()
           ],
@@ -159,7 +198,9 @@ class _ChatScreenState extends State<ChatScreen> {
       {required ModelsProvider modelsProvider,
         required ChatProvider chatProvider}) async {
     try {
+      String msgRequest = "";
       String days = "";
+      String budget = plan.getPlanBudget();
       if(plan.isThree){
         days = " 3 ";
       }
@@ -169,31 +210,71 @@ class _ChatScreenState extends State<ChatScreen> {
       else if(plan.isTen){
         days = " 10 ";
       }
-      String msg = "Can you tell me in which travel destination can someone go with a budget of ${plan.getPlanBudget()} euro, ${days} days";
-      if(plan.isShopping){
-        msg = "$msg, for shopping ";
+      if(isPlanRequest == true){
+        for(int i=0;i<request[requestIndex].userName.length;i++){
+          if(request[requestIndex].plan[i].isTen && !days.contains("10")){
+            days = "${days}or 10";
+          }
+          else if(request[requestIndex].plan[i].isSeven && days.contains("7")){
+            days = "${days}or 7";
+          }
+          else if(request[requestIndex].plan[i].isThree && days.contains("3")){
+            days = "${days}or 3";
+          }
+          if(request[requestIndex].plan[i].isTropical && !msgRequest.contains("tropical")){
+            days = "$msgRequest, be a tropical place";
+          }
+          if(request[requestIndex].plan[i].isShopping && !msgRequest.contains("shopping")){
+            days = "$msgRequest, have places to go shopping";
+          }
+          if(request[requestIndex].plan[i].isSwimming && !msgRequest.contains("swim")){
+            days = "$msgRequest, have beaches where you can swim close by ";
+          }
+          if(request[requestIndex].plan[i].isBigCity && !msgRequest.contains("city")){
+            days = "$msgRequest, be a big city";
+          }
+          if(request[requestIndex].plan[i].isSkiing && !msgRequest.contains("mountains")){
+            days = "$msgRequest, have mountains ";
+          }
+          if(request[requestIndex].plan[i].isNature && !msgRequest.contains("nature")){
+            days = "$msgRequest, be a lot of nature ";
+          }
+          if(request[requestIndex].plan[i].isHistoricalHeritage && !msgRequest.contains("historical")){
+            days = "$msgRequest, have historical attractions ";
+          }
+          if(request[requestIndex].plan[i].budget.compareTo( plan.getPlanBudget())>0){
+            budget = request[requestIndex].plan[i].budget;
+          }
+        }
       }
-      if(plan.isSwimming){
-        msg = "$msg, for going to the seaside and swim ";
+      String msg = "Can you tell me a contry and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of ${plan.getPlanBudget()} euro, for ${days} days. I want the destination to";
+      if(plan.isShopping && !msgRequest.contains("shopping")){
+        msg = "$msg, have places to go shopping ";
       }
-      if(plan.isHistoricalHeritage){
-        msg = "$msg for visiting historical attractions ";
+      if(plan.isSwimming && !msgRequest.contains("swim")){
+        msg = "$msg, have beaches where you can swim close by ";
       }
-      if(plan.isBigCity){
-        msg = "$msg for visiting a big city ";
+      if(plan.isHistoricalHeritage&& !msgRequest.contains("historical")){
+        msg = "$msg, have historical attractions ";
       }
-      if(plan.isTropical){
-        msg = "$msg for visiting a tropical place ";
+      if(plan.isBigCity && !msgRequest.contains("city")){
+        msg = "$msg be a big city ";
       }
-      if(plan.isSkiing){
-        msg = "$msg for visiting the mountains and maybe skiing ";
+      if(plan.isTropical && !msgRequest.contains("tropical")){
+        msg = "$msg be a tropical place ";
       }
-      if(plan.isNature){
-        msg = "$msg for being in the nature ";
+      if(plan.isSkiing && !msgRequest.contains("mountains")){
+        msg = "$msg have mountains ";
       }
+      if(plan.isNature && !msgRequest.contains("nature")){
+        msg = "$msg be a lot of nature ";
+      }
+      msg = "${msg}In this budget I want to include the transport plan and also the accomodation and travel expenses. If the period is short please recommend something close. If the period is long recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
       await chatProvider.sendMessageAndGetAnswers(
           msg: msg, chosenModelId: modelsProvider.getCurrentModel);
-      setState(() {});
+      img ="Beautiful ${chatProvider
+          .getChatList[0].msg} as cartoons";
+      generateImage();
     } catch (error) {
       log("error $error");
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

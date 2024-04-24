@@ -2,7 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-
+import 'package:myjorurney/screens/plan-trip_page.dart';
 import '../data/globals.dart';
 import '../data/plan.dart';
 import '../data/request.dart';
@@ -26,7 +26,7 @@ class _NotificationPageState extends State<NotificationPage> {
     String userPhoneRequest = "";
     String userNameRequest = "";
     request = [];
-    Request requestLocal = Request(Plan("", "" ,false,false,false,false,false,false,false,false,false,false,""), "", "");
+    Request requestLocal = Request([], [], []);
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var plan_local in snapshot.children) {
@@ -41,6 +41,7 @@ class _NotificationPageState extends State<NotificationPage> {
           Plan localPlan = Plan("", "" ,false,false,false,false,false,false,false,false,false,false,"");
           requestId = plan_local.child("requestId").value!.toString();
           DataSnapshot requestPlan = await ref.child('plan').get();
+
           for (var requestLocal in requestPlan.children) { //cautam in plan plan-ul userului care a trimis requestul
             if(requestLocal.child("requestId").value!.toString() == requestId&&requestLocal.key!=plan_local.key){
              userIdRequest = requestLocal.child("userId").value!.toString();
@@ -99,8 +100,8 @@ class _NotificationPageState extends State<NotificationPage> {
             localPlan.isTropical = false;
           }
           requestLocal.setPlan(localPlan);
-          requestLocal.phoneNumber = userPhoneRequest;
-          requestLocal.userName = userNameRequest;
+          requestLocal.setPhoneNumber(userPhoneRequest);
+          requestLocal.setUserName(userNameRequest);
           request.add(requestLocal);
         }
       }
@@ -123,7 +124,16 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
     );
   }
-
+  void navigateToPlan(){
+    isPlanRequest = true;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+          const PlanTripPage(),
+        )
+    );
+  }
   Widget _title() {
     return const Text("My Journey");
   }
@@ -153,15 +163,16 @@ class _NotificationPageState extends State<NotificationPage> {
                     itemBuilder: (BuildContext context, int index) {
                       return GestureDetector(
                         onTap: () {
-
+                          requestIndex = index;
+                          navigateToPlan();
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(request[index].phoneNumber),
-                              Text(request[index].userName),
+                              Text(request[index].phoneNumber[0]), // aici  ar trebui afisati toti userii de la care vine requestul,nu doar de la primul
+                              Text(request[index].userName[0]),
                             ],
                           ),
                         ),

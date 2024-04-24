@@ -42,11 +42,17 @@ class _FavouritePageState extends State<FavouritePage> {
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
+      plans = [];
       for (var plan_local in snapshot.children) {
         String userId = plan_local.child("userId").value!.toString(); // Get the value of userId
         if (user?.uid == userId) {
           setState(() {
-            plans.add(plan_local.child("result").value.toString());
+            if(plan_local.child("result").value.toString()!="null") {
+              plans.add(plan_local
+                  .child("result")
+                  .value
+                  .toString());
+            }
           });
           print(plan_local.child("result").value.toString());
         }
@@ -87,7 +93,7 @@ class _FavouritePageState extends State<FavouritePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(plans[index]),
-                            Text('Option $index'),
+                            //Text('Option $index'),
                           ],
                         ),
                       ),

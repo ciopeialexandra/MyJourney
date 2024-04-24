@@ -10,3 +10,4 @@ List<Request> request =  List.empty(growable: true);
 List<bool> isSelected = List<bool>.filled(100, false);
 bool isFriendsTrip = false;
 bool isPlanRequest = false;
+int requestIndex = -1;
