@@ -8,7 +8,10 @@ import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
+import 'package:provider/provider.dart';
 import '../data/globals.dart';
+import '../services/chat-provider.dart';
+import '../services/models-provider.dart';
 import 'add-friend_page.dart';
 import 'notification_page.dart';
 
@@ -163,7 +166,26 @@ class _HomePageState extends State<HomePage> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                        const PlanTripPage(),
+                            MultiProvider(
+                              providers: [
+                                ChangeNotifierProvider(
+                                  create: (_) => ModelsProvider(),
+                                ),
+                                ChangeNotifierProvider(
+                                  create: (_) => ChatProvider(),
+                                ),
+                              ],
+                              child: MaterialApp(
+                                title: 'Flutter ChatBOT',
+                                debugShowCheckedModeBanner: false,
+                                theme: ThemeData(
+                                    scaffoldBackgroundColor: Colors.white,
+                                    appBarTheme: const AppBarTheme(
+                                      color: Colors.white,
+                                    )),
+                                home: const PlanTripPage(),
+                              ),
+                            )
                     )
                 );
               }),
