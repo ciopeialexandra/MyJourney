@@ -22,6 +22,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
   List<Contact> contactsFiltered = [];
   TextEditingController searchController = TextEditingController();
   TextEditingController budgetController = TextEditingController();
+  TextEditingController departureController = TextEditingController();
   DateTimeRange? _selectedDateRange;
   DateTime? startDate;
   DateTime? endDate;
@@ -92,10 +93,20 @@ class _PlanTripPageState extends State<PlanTripPage> {
     );
   }
 
-  Widget _entryField(String title,
+  Widget _entryFieldNumber(String title,
       TextEditingController controller) {
     return TextField(
       keyboardType: TextInputType.number,
+      controller: controller,
+      decoration: InputDecoration(
+          labelText: title
+      ),
+    );
+  }
+
+  Widget _entryFieldText(String title,
+      TextEditingController controller) {
+    return TextField(
       controller: controller,
       decoration: InputDecoration(
           labelText: title
@@ -110,6 +121,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
     await ref.set({
       "userId": userId,
       "budget": "",
+      "departure": "",
       "date": "",
       "isSki": false,
       "isCity": false,
@@ -158,6 +170,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
       "userId": userId,
       "budget": plan.getPlanBudget(),
       "date": plan.getPlanDate(),
+      "departure": plan.getPlanTown(),
       "isSki": plan.getPlanSki(),
       "isCity": plan.getPlanCity(), //de adaugat verificari sa nu fie niciuna goala
       "isHistorical": plan.getPlanHistorical(),
@@ -177,6 +190,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
   Widget _nextButton() {
     if (_selectedDateRange != null) {
       plan.setPlanBudget(budgetController.text);
+      plan.setPlanTown(departureController.text);
       plan.setPlanDate(_selectedDateRange!.toString());
       plan.setPlanHistorical(isPressedAttractions);
       plan.setPlanShopping(isPressedShopping);
@@ -189,9 +203,6 @@ class _PlanTripPageState extends State<PlanTripPage> {
       plan.setPlanSeven(isPressedSeven);
       plan.setPlanTen(isPressedTen);
     }
-    if(isPlanRequest == true){
-
-    }
     return TextButton(
         onPressed: () =>
             setState(() {
@@ -199,6 +210,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
                 _createPlan();
               }
               if (isFriendsTrip == false) {
+                _updatePlan();
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -239,6 +251,47 @@ class _PlanTripPageState extends State<PlanTripPage> {
             ),
         child: const Text('Continue')
     );
+  }
+  void _updatePlan() async{
+    var uuid = const Uuid().v1();
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userId = user?.uid;
+    String? idUpdate = "";
+    //String planId = request[requestIndex].plan
+    final postData = {
+      "userId": userId,
+      "budget": plan.getPlanBudget(),
+      "departure": plan.getPlanTown(),
+      "date": plan.getPlanDate(),
+      "isSki": plan.getPlanSki(),
+      "isCity": plan.getPlanCity(),
+      "isHistorical": plan.getPlanHistorical(),
+      "isBeach": plan.getPlanSwim(),
+      "isNature": plan.getPlanNature(),
+      "isSwim": plan.getPlanSwim(),
+      "isTropical": plan.getPlanTropical(),
+      "requestId": request[requestIndex].key
+    };
+    final Map<String, Map> updates = {};
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshot = await ref.child('plan').get();
+      for (var plan_local in snapshot.children) {
+        if (plan_local
+            .child("userId")
+            .value!
+            .toString() == userId
+            && request[requestIndex].key == plan_local.child("requestId").value!.toString()) {
+          idUpdate = plan_local.key;
+        }
+      }
+    }catch (error) {
+      print(error);
+    }
+    if(idUpdate != "") {
+      updates["plan/$idUpdate"] = postData;
+      return FirebaseDatabase.instance.ref().update(updates);
+    }
   }
   Widget requestSend(BuildContext context) {
     return AlertDialog(
@@ -510,12 +563,13 @@ class _PlanTripPageState extends State<PlanTripPage> {
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: <Widget>[
             _animatedText(),
             const SizedBox(height: 20),
-            _entryField("Your budget", budgetController),
+            _entryFieldNumber("Your budget", budgetController),
+            const SizedBox(height: 20),
+            _entryFieldText("Place of departure", departureController),
             const SizedBox(height: 30),
             _dateButton(),
             const SizedBox(height: 20),

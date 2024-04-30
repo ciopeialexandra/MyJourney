@@ -26,7 +26,7 @@ class _NotificationPageState extends State<NotificationPage> {
     String userPhoneRequest = "";
     String userNameRequest = "";
     request = [];
-    Request requestLocal = Request([], [], []);
+    Request requestLocal = Request("", [], [], []);
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var plan_local in snapshot.children) {
@@ -37,12 +37,13 @@ class _NotificationPageState extends State<NotificationPage> {
             && plan_local
                 .child("budget")
                 .value!
-                .toString().isEmpty) {
-          Plan localPlan = Plan("", "" ,false,false,false,false,false,false,false,false,false,false,"");
+                .toString().isEmpty) { //aici cautam daca userul curent are vreun request deschis
+          Plan localPlan = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,"");
           requestId = plan_local.child("requestId").value!.toString();
+          requestLocal.key = requestId;
           DataSnapshot requestPlan = await ref.child('plan').get();
-
-          for (var requestLocal in requestPlan.children) { //cautam in plan plan-ul userului care a trimis requestul
+          localPlan.setPlanKey(plan_local.key);
+          for (var requestLocal in requestPlan.children) { //cautam in db plan-ul userului care a trimis requestul
             if(requestLocal.child("requestId").value!.toString() == requestId&&requestLocal.key!=plan_local.key){
              userIdRequest = requestLocal.child("userId").value!.toString();
             }

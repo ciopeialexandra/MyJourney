@@ -25,7 +25,6 @@ class _HomePageState extends State<HomePage> {
   Future<void> signOut() async {
     await Auth().signOut();
   }
-
   Widget _title() {
     return const Text('My Journey');
   }

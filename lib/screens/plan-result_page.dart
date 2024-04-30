@@ -1,18 +1,15 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/home_page.dart';
+import 'package:myjorurney/screens/plan-trip_page.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 import '../data/globals.dart';
 import '../services/api_constants.dart';
 import '../services/chat-provider.dart';
 import '../services/models-provider.dart';
 import '../widgets/chat_widget.dart';
 import '../widgets/text_widget.dart';
-import 'add-friend_page.dart';
 import 'package:http/http.dart' as http;
 
 class ChatScreen extends StatefulWidget {
@@ -66,32 +63,13 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _generatedImageUrl = responseData['data'][0]['url'];
       });
+      print(_generatedImageUrl);
     } else {
       // Handle API error
       print('Error generating image: ${response.reasonPhrase}');
     }
   }
-  void _updatePlan() async{
-    var uuid = const Uuid().v1();
-    User? user = FirebaseAuth.instance.currentUser;
-    String? userId = user?.uid;
-    //String planId = request[requestIndex].plan
-    final postData = {
-      "userId": userId,
-      "budget": plan.getPlanBudget(),
-      "date": plan.getPlanDate(),
-      "isSki": plan.getPlanSki(),
-      "isCity": plan.getPlanCity(),
-      "isHistorical": plan.getPlanHistorical(),
-      "isBeach": plan.getPlanSwim(),
-      "isNature": plan.getPlanNature(),
-      "isSwim": plan.getPlanSwim(),
-      "isTropical": plan.getPlanTropical(),
-    };
-    final Map<String, Map> updates = {};
-    updates["plan/$request[in"] = postData;
-    return FirebaseDatabase.instance.ref().update(updates);
-  }
+
   Future<void> showResult(ModelsProvider modelsProvider, ChatProvider chatProvider) async {
     await sendMessageFCT(
     modelsProvider: modelsProvider,
@@ -109,7 +87,7 @@ class _ChatScreenState extends State<ChatScreen> {
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                const AddFriendPage()));
+                const PlanTripPage()));
       });
     },
     );
@@ -124,8 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   builder: (context) =>
                   const HomePage()));
         });
-        plan.setPlanResult(resultMsg);
-       // _updatePlan();
+        // plan.setPlanResult(resultMsg);
       },
       child: const Text('Add to wishlist'),
     );
@@ -159,7 +136,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ],
       title: _title(),
     ),
-      body: SafeArea(
+      body: Expanded(
         child: Column(
           children: [
             Flexible(
@@ -200,6 +177,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       String msgRequest = "";
       String days = "";
+      String destination = "";
       String budget = plan.getPlanBudget();
       if(plan.isThree){
         days = " 3 ";
@@ -245,9 +223,13 @@ class _ChatScreenState extends State<ChatScreen> {
           if(request[requestIndex].plan[i].budget.compareTo( plan.getPlanBudget())>0){
             budget = request[requestIndex].plan[i].budget;
           }
+          if(!destination.contains(request[requestIndex].plan[i].town)){
+            String newTown = request[requestIndex].plan[i].town;
+            destination = "$destination or $newTown";
+          }
         }
       }
-      String msg = "Can you tell me a contry and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of ${plan.getPlanBudget()} euro, for ${days} days. I want the destination to";
+      String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of ${plan.getPlanBudget()} euro, for $days days, from $destination. I want the destination to";
       if(plan.isShopping && !msgRequest.contains("shopping")){
         msg = "$msg, have places to go shopping ";
       }
@@ -269,11 +251,11 @@ class _ChatScreenState extends State<ChatScreen> {
       if(plan.isNature && !msgRequest.contains("nature")){
         msg = "$msg be a lot of nature ";
       }
-      msg = "${msg}In this budget I want to include the transport plan and also the accomodation and travel expenses. If the period is short please recommend something close. If the period is long recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
+      msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is long recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
       await chatProvider.sendMessageAndGetAnswers(
           msg: msg, chosenModelId: modelsProvider.getCurrentModel);
-      img ="Beautiful ${chatProvider
-          .getChatList[0].msg} as cartoons";
+      img ="A realistic picture portraying a trip to ${chatProvider
+          .getChatList[0].msg} ";
       generateImage();
     } catch (error) {
       log("error $error");

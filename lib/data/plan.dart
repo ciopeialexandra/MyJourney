@@ -1,7 +1,9 @@
 
 class Plan {
+  String? key;
   String budget;
   String date;
+  String town;
   bool isSkiing;
   bool isBigCity;
   bool isHistoricalHeritage;
@@ -12,10 +14,13 @@ class Plan {
   bool isThree;
   bool isSeven;
   bool isTen;
-  String result;
+  String userId;
 
-  Plan(this.budget, this.date,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isThree,this.isSeven,this.isTen,this.result);
+  Plan(this.key, this.budget, this.date, this.town,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isThree,this.isSeven,this.isTen,this.userId);
 
+  void setPlanKey(String? key) {
+    this.key = key;
+  }
   void setPlanBudget(String budget) {
     this.budget = budget;
   }
@@ -40,8 +45,8 @@ class Plan {
   void setPlanNature(bool value) {
     isNature = value;
   }
-  void setPlanResult(String value) {
-    result = value;
+  void setPlanTown(String value) {
+    town = value;
   }
   void setPlanTropical(bool value) {
     isTropical = value;
@@ -61,6 +66,9 @@ class Plan {
   // void setPlanEndDate(DateTime value) {
   //   endDate = value;
   // }
+  String? getPlanKey(){
+    return key;
+  }
   String getPlanBudget(){
     return budget;
   }
@@ -85,20 +93,20 @@ class Plan {
   bool getPlanNature(){
     return isNature;
   }
-  String getPlanResult(){
-    return result;
+  String getPlanTown(){
+    return town;
   }
-  String getPlanTropical(){
-    return result;
+  bool getPlanTropical(){
+    return isTropical;
   }
-  String getPlanThree(){
-    return result;
+  bool getPlanThree(){
+    return isThree;
   }
-  String getPlanSeven(){
-    return result;
+  bool getPlanSeven(){
+    return isSeven;
   }
-  String getPlanTen(){
-    return result;
+  bool getPlanTen(){
+    return isTen;
   }
   // DateTime getPlanStartDate(){
   //   return startDate;
