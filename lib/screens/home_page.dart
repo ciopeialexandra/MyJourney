@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/auth.dart';
 import 'package:myjorurney/navigate.dart';
@@ -8,7 +7,10 @@ import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
+import 'package:provider/provider.dart';
 import '../data/globals.dart';
+import '../services/chat-provider.dart';
+import '../services/models-provider.dart';
 import 'add-friend_page.dart';
 import 'notification_page.dart';
 
@@ -60,7 +62,6 @@ class _HomePageState extends State<HomePage> {
             .toString().isEmpty) {
           notificationNumber++;
         }
-        print(plan_local.child("budget").value!.toString());
       }
     } catch (error) {
       print("Error at searching requests");
@@ -86,7 +87,6 @@ class _HomePageState extends State<HomePage> {
     notificationNumber =  await _isRequest();
   }
   Widget _notification(){
-    setNotificationNumber();
     if(notificationNumber>0) {
       return TextButton(
         onPressed: () {
@@ -158,12 +158,32 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () =>  setState(() {
+                isFriendsTrip = false;
                 isPlanRequest = false;
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                        const PlanTripPage(),
+                            MultiProvider(
+                              providers: [
+                                ChangeNotifierProvider(
+                                  create: (_) => ModelsProvider(),
+                                ),
+                                ChangeNotifierProvider(
+                                  create: (_) => ChatProvider(),
+                                ),
+                              ],
+                              child: MaterialApp(
+                                title: 'Flutter ChatBOT',
+                                debugShowCheckedModeBanner: false,
+                                theme: ThemeData(
+                                    scaffoldBackgroundColor: Colors.white,
+                                    appBarTheme: const AppBarTheme(
+                                      color: Colors.white,
+                                    )),
+                                home: const PlanTripPage(),
+                              ),
+                            )
                     )
                 );
               }),
@@ -177,6 +197,7 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   Widget build(BuildContext context) {
+    setNotificationNumber();
     return Scaffold(
       drawer: NavMenu(),
       appBar: AppBar(
