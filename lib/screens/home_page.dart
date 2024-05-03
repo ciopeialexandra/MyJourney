@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/auth.dart';
 import 'package:myjorurney/navigate.dart';
@@ -63,7 +62,6 @@ class _HomePageState extends State<HomePage> {
             .toString().isEmpty) {
           notificationNumber++;
         }
-        print(plan_local.child("budget").value!.toString());
       }
     } catch (error) {
       print("Error at searching requests");
@@ -89,7 +87,6 @@ class _HomePageState extends State<HomePage> {
     notificationNumber =  await _isRequest();
   }
   Widget _notification(){
-    setNotificationNumber();
     if(notificationNumber>0) {
       return TextButton(
         onPressed: () {
@@ -161,6 +158,7 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               onPressed: () =>  setState(() {
+                isFriendsTrip = false;
                 isPlanRequest = false;
                 Navigator.push(
                     context,
@@ -199,6 +197,7 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   Widget build(BuildContext context) {
+    setNotificationNumber();
     return Scaffold(
       drawer: NavMenu(),
       appBar: AppBar(

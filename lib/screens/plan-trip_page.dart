@@ -47,7 +47,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
   bool resultDisplayed = false;
   String img = "";
   String _generatedImageUrl = '';
-  late bool isRequestFinished;
+  bool isRequestFinished = false;
   bool resultUpdated = true;
   String result = "";
 
@@ -250,13 +250,28 @@ class _PlanTripPageState extends State<PlanTripPage> {
               //if (isFriendsTrip == false) {
               if(isPlanRequest == true && isFriendsTrip==false){
                 _updatePlan();
-                verifyIsRequestFinished();
+                waitVerifyRequestFinished();
                 if(isRequestFinished) {
                   resultUpdated = false;
                  _updateRequest();
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return requestFinished(context);
+                      }
+                  );
+                }
+                else{
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return requestPending(context);
+                      }
+                  );
                 }
               }
               else if(isFriendsTrip == true){
+                _createPlan();
                 // Show the AlertDialog
                 showDialog(
                     context: context,
@@ -300,7 +315,6 @@ class _PlanTripPageState extends State<PlanTripPage> {
       setState(() {
         _generatedImageUrl = responseData['data'][0]['url'];
       });
-      print(_generatedImageUrl);
     } else {
       // Handle API error
       print('Error generating image: ${response.reasonPhrase}');
@@ -389,9 +403,9 @@ class _PlanTripPageState extends State<PlanTripPage> {
       msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is long recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
       await chatProvider.sendMessageAndGetAnswers(
           msg: msg, chosenModelId: modelsProvider.getCurrentModel);
-      img ="A realistic picture portraying a trip to ${chatProvider
-          .getChatList[0].msg} ";
-      generateImage();
+      // img ="A realistic picture portraying a trip to ${chatProvider
+      //     .getChatList[0].msg} ";
+      // generateImage();
     } catch (error) {
       log("error $error");
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -459,7 +473,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
     String? idUpdate = "";
     final postData = {
       "finalResult": result,
-      "accept": ""
+      "accept": "not yet"
     };
     final Map<String, Map> updates = {};
     String key = request[requestIndex].key;
@@ -470,6 +484,52 @@ class _PlanTripPageState extends State<PlanTripPage> {
     return AlertDialog(
       title: const Text('Request Send'),
       content: const Text('The request has been sent to your friends'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            setState(() {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const HomePage(),
+                  )
+              );
+            }
+            );
+          },
+          child: const Text('Done'),
+        ),
+      ],
+    );
+  }
+  Widget requestFinished(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Your trip preferences are saved'),
+      content: const Text('All your friends details are completed, choose your destination'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            setState(() {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const HomePage(),
+                  )
+              );
+            }
+            );
+          },
+          child: const Text('Continue'),
+        ),
+      ],
+    );
+  }
+  Widget requestPending(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Your trip preferences are saved'),
+      content: const Text("Not all your friends completed the trip details, you will get a notification when it's time to choose your destination"),
       actions: <Widget>[
         TextButton(
           onPressed: () {
@@ -730,13 +790,13 @@ class _PlanTripPageState extends State<PlanTripPage> {
   }
   @override
   Widget build(BuildContext context) {
-    final modelsProvider = Provider.of<ModelsProvider>(context);
-    final chatProvider = Provider.of<ChatProvider>(context);
-    if(resultUpdated == false) {
-      showResult(modelsProvider, chatProvider);
-      result = chatProvider.getChatList[0].msg;
-      resultUpdated = true;
-    }
+    // final modelsProvider = Provider.of<ModelsProvider>(context);
+    // final chatProvider = Provider.of<ChatProvider>(context);
+    // if(resultUpdated == false) {
+    //   showResult(modelsProvider, chatProvider);
+    //   result = chatProvider.getChatList[0].msg;
+    //   resultUpdated = true;
+    // }
     return Scaffold(
       appBar: AppBar(
         title: _title(),
@@ -796,11 +856,10 @@ class _PlanTripPageState extends State<PlanTripPage> {
     );
   }
 
-  void verifyIsRequestFinished() async {
+  Future<bool> verifyIsRequestFinished() async {
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     User? user = FirebaseAuth.instance.currentUser;
     int notificationNumber = 0;
-    bool isRequestFinishedLocal = true;
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {
@@ -811,19 +870,16 @@ class _PlanTripPageState extends State<PlanTripPage> {
             && planLocal
                 .child("budget")
                 .value!
-                .toString().isEmpty) {
-          isRequestFinished = false;
+                .toString()!="") {
+          return false;
         }
       }
     } catch (error) {
       log("Error at searching requests");
     }
-    if(isRequestFinishedLocal == true){
-      isRequestFinished = true;
-    }
-    else{
-      isRequestFinished = false;
-    }
-
+    return true;
+  }
+  void waitVerifyRequestFinished() async{
+    isRequestFinished = await verifyIsRequestFinished();
   }
 }
