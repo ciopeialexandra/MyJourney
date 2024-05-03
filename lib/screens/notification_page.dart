@@ -3,12 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import 'package:provider/provider.dart';
 import '../data/globals.dart';
 import '../data/plan.dart';
 import '../data/request.dart';
-import '../services/chat-provider.dart';
-import '../services/models-provider.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -133,27 +130,8 @@ class _NotificationPageState extends State<NotificationPage> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                MultiProvider(
-                  providers: [
-                    ChangeNotifierProvider(
-                      create: (_) => ModelsProvider(),
-                    ),
-                    ChangeNotifierProvider(
-                      create: (_) => ChatProvider(),
-                    ),
-                  ],
-                  child: MaterialApp(
-                    title: 'Flutter ChatBOT',
-                    debugShowCheckedModeBanner: false,
-                    theme: ThemeData(
-                        scaffoldBackgroundColor: Colors.white,
-                        appBarTheme: const AppBarTheme(
-                          color: Colors.white,
-                        )),
-                    home: const PlanTripPage(),
-                  ),
-                )
+          builder: (context) =>
+          const PlanTripPage(),
         )
     );
   }

@@ -3,10 +3,7 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import 'package:provider/provider.dart';
 import '../data/globals.dart';
-import '../services/chat-provider.dart';
-import '../services/models-provider.dart';
 
 class AddFriendPage extends StatefulWidget {
   const AddFriendPage({super.key});
@@ -81,27 +78,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      MultiProvider(
-                        providers: [
-                          ChangeNotifierProvider(
-                            create: (_) => ModelsProvider(),
-                          ),
-                          ChangeNotifierProvider(
-                            create: (_) => ChatProvider(),
-                          ),
-                        ],
-                        child: MaterialApp(
-                          title: 'Flutter ChatBOT',
-                          debugShowCheckedModeBanner: false,
-                          theme: ThemeData(
-                              scaffoldBackgroundColor: Colors.white,
-                              appBarTheme: const AppBarTheme(
-                                color: Colors.white,
-                              )),
-                          home: const PlanTripPage(),
-                        ),
-                      )
+                builder: (context) =>
+                const PlanTripPage(),
               )
           );
         });
