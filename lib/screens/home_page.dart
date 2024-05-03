@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage> {
     //verifies if there are any trip requests for this user and returns their number
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     User? user = FirebaseAuth.instance.currentUser;
-    int notificationNumber = 0;
+   notificationNumber = 0;
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var plan_local in snapshot.children) {
@@ -83,9 +83,6 @@ class _HomePageState extends State<HomePage> {
       child: const Text('Where have you been ?'),
     );
   }
-  void setNotificationNumber() async{
-    notificationNumber =  await _isRequest();
-  }
   Widget _notification(){
     if(notificationNumber>0) {
       return TextButton(
@@ -118,6 +115,7 @@ class _HomePageState extends State<HomePage> {
       );
     }
     else{
+
       return const Text(" ");
     }
   }
@@ -197,7 +195,6 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   Widget build(BuildContext context) {
-    setNotificationNumber();
     return Scaffold(
       drawer: NavMenu(),
       appBar: AppBar(
@@ -210,7 +207,17 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          _notification(),
+          FutureBuilder<int>(
+              future: _isRequest(), // a previously-obtained Future<String> or null
+              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+              if (snapshot.hasData) {
+              return Container(
+                child:  _notification()
+              );
+              }
+                return const Text(" ");
+              }
+              ),
           Expanded(
             child: SizedBox(
               height: double.infinity,
