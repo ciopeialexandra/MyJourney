@@ -25,9 +25,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final User? user = Auth().currentUser;
   int notificationNumber = 0;
+
   Future<void> signOut() async {
     await Auth().signOut();
   }
+
   Widget _title() {
     return const Text('My Journey');
   }
@@ -35,7 +37,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _signOutButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: TextButton(
             onPressed: signOut,
             style: OutlinedButton.styleFrom(
@@ -45,11 +47,12 @@ class _HomePageState extends State<HomePage> {
         )
     );
   }
-  Future<int> _isRequest() async{
+
+  Future<int> _isRequest() async {
     //verifies if there are any trip requests for this user and returns their number
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     User? user = FirebaseAuth.instance.currentUser;
-   notificationNumber = 0;
+    notificationNumber = 0;
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var plan_local in snapshot.children) {
@@ -58,9 +61,10 @@ class _HomePageState extends State<HomePage> {
             .value!
             .toString() == user?.uid
             && plan_local
-            .child("budget")
-            .value!
-            .toString().isEmpty) {
+                .child("budget")
+                .value!
+                .toString()
+                .isEmpty) {
           notificationNumber++;
         }
       }
@@ -69,7 +73,8 @@ class _HomePageState extends State<HomePage> {
     }
     return notificationNumber;
   }
-  Future<int> _areRequestDetailsCompleted() async{
+
+  Future<int> _areRequestDetailsCompleted() async {
     //verifies if there are any trip requests for this user and returns their number
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     User? user = FirebaseAuth.instance.currentUser;
@@ -107,20 +112,21 @@ class _HomePageState extends State<HomePage> {
 
   Widget _beenButton() {
     return ElevatedButton(
-        onPressed: () {
-          setState(() {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                    const TripPage()));
-          });
-        },
+      onPressed: () {
+        setState(() {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                  const TripPage()));
+        });
+      },
       child: const Text('Where have you been ?'),
     );
   }
-  Widget _notification(){
-    if(notificationNumber>0) {
+
+  Widget _notification() {
+    if (notificationNumber > 0) {
       return TextButton(
         onPressed: () {
           setState(() {
@@ -142,7 +148,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             const Icon(Icons.notifications_active_outlined),
             // Adjust the spacing between icon and text as needed
-            if(notificationNumber==1)
+            if(notificationNumber == 1)
               Text('$notificationNumber notification')
             else
               Text('$notificationNumber notifications')
@@ -150,85 +156,71 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
-    else{
-
+    else {
       return const Text(" ");
     }
   }
-  Widget _planButton(){
+
+  Widget _planButton() {
     return ElevatedButton(
-  //     onPressed: () async {
-  //       if(await Permission.contacts.request().isGranted) {
-  //         setState(() {
-  //           Navigator.push(
-  //               context,
-  //               MaterialPageRoute(
-  //                   builder: (context) =>
-  //                   const PlanTripPage()));
-  //         });
-  //       }
-  //       else{
-  //       }
-  //     },
-  //     child: const Text('Plan a trip'),
-  //   );
-  //
-      onPressed: () => showDialog<String>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Add friends'),
-          content: const Text('Do you want to go with a friend?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () =>  setState(() {
-                isPlanRequest = false;
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                        const AddFriendPage()));
-              }),
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () =>  setState(() {
-                isFriendsTrip = false;
-                isPlanRequest = false;
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            MultiProvider(
-                              providers: [
-                                ChangeNotifierProvider(
-                                  create: (_) => ModelsProvider(),
-                                ),
-                                ChangeNotifierProvider(
-                                  create: (_) => ChatProvider(),
-                                ),
-                              ],
-                              child: MaterialApp(
-                                title: 'Flutter ChatBOT',
-                                debugShowCheckedModeBanner: false,
-                                theme: ThemeData(
-                                    scaffoldBackgroundColor: Colors.white,
-                                    appBarTheme: const AppBarTheme(
-                                      color: Colors.white,
-                                    )),
-                                home: const PlanTripPage(),
-                              ),
-                            )
-                    )
-                );
-              }),
-              child: const Text('No'),
-            ),
-          ],
-        ),
-      ),
+      //     onPressed: () async {
+      //       if(await Permission.contacts.request().isGranted) {
+      //         setState(() {
+      //           Navigator.push(
+      //               context,
+      //               MaterialPageRoute(
+      //                   builder: (context) =>
+      //                   const PlanTripPage()));
+      //         });
+      //       }
+      //       else{
+      //       }
+      //     },
+      //     child: const Text('Plan a trip'),
+      //   );
+      //
+      onPressed: () =>
+          showDialog<String>(
+            context: context,
+            builder: (BuildContext context) =>
+                AlertDialog(
+                  title: const Text('Add friends'),
+                  content: const Text('Do you want to go with a friend?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () =>
+                          setState(() {
+                            isPlanRequest = false;
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                    const AddFriendPage()));
+                          }),
+                      child: const Text('Yes'),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          setState(() {
+                            isFriendsTrip = false;
+                            isPlanRequest = false;
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                  const PlanTripPage(),
+                                )
+                            );
+                          }),
+                      child: const Text('No'),
+                    ),
+                  ],
+                ),
+          ),
       child: const Text('Plan a trip'),
     );
   }
+
   Widget _requestAlert() {
     return AlertDialog(
       title: const Text('Details completed'),
@@ -247,24 +239,25 @@ class _HomePageState extends State<HomePage> {
               }),
           child: const Text('Continue'),
         ),
-        // TextButton(
-        //   onPressed: () =>
-        //       setState(() {
-        //         isFriendsTrip = false;
-        //         isPlanRequest = false;
-        //         Navigator.push(
-        //             context,
-        //             MaterialPageRoute(
-        //               builder: (context) =>
-        //               const PlanTripPage(),
-        //             )
-        //         );
-        //       }),
-        //   child: const Text('Choose later'),
-        // ),
+        TextButton(
+          onPressed: () =>
+              setState(() {
+                isFriendsTrip = false;
+                isPlanRequest = false;
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                      const HomePage(),
+                    )
+                );
+              }),
+          child: const Text('Choose later'),
+        ),
       ],
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -280,65 +273,66 @@ class _HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           FutureBuilder<int>(
-              future: _areRequestDetailsCompleted(), // a previously-obtained Future<String> or null
+              future: _areRequestDetailsCompleted(),
+              // a previously-obtained Future<String> or null
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
                 if (snapshot.hasData) {
-                  return Container(
-                      child:  _requestAlert()
-                  );
-                }
-                else{
-                  FutureBuilder<int>(
-                      future: _isRequest(), // a previously-obtained Future<String> or null
-                      builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                        if (snapshot.hasData) {
-                          return Container(
-                              child: _notification()
-                          );
-                        }
-                        return const Text(" ");
-                      }
-                      );
-                  Expanded(
-                    child: SizedBox(
-                      height: double.infinity,
-                      width: double.infinity,
-                      child: InteractiveViewer(
-                        boundaryMargin: const EdgeInsets.all(double.infinity),
-                        minScale: 0.1,
-                        maxScale: 2.0,
-                        child: GestureDetector(
-                          onTap: () {
-                          // Handle tap on the map
-                          },
-                          child: SimpleMap(
-                            instructions: SMapWorld.instructions,
-                            defaultColor: Colors.grey,
-                            colors: const SMapWorldColors(
-                              uS: Colors.purple,
-                              cN: Colors.pink,
-                              iN: Colors.purple,
-                            ).toMap(),
-                            callback: (id, name, tapDetails) {
-                              print(id);
-                              },
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _beenButton(),
-                      _planButton()
-                    ],
-                  );
+                  // return Container(
+                  //  child:  _requestAlert()
+                  // );
                 }
                 return const Text("");
               }
           ),
+          FutureBuilder<int>(
+              future: _isRequest(),
+              // a previously-obtained Future<String> or null
+              builder: (BuildContext context,
+                  AsyncSnapshot<int> snapshot) {
+                if (snapshot.hasData) {
+                  return Container(
+                      child: _notification()
+                  );
+                }
+                return const Text(" ");
+              }
+          ),
+          Expanded(
+            child: SizedBox(
+              height: double.infinity,
+              width: double.infinity,
+              child: InteractiveViewer(
+                boundaryMargin: const EdgeInsets.all(double.infinity),
+                minScale: 0.1,
+                maxScale: 2.0,
+                child: GestureDetector(
+                  onTap: () {
+                    // Handle tap on the map
+                  },
+                  child: SimpleMap(
+                    instructions: SMapWorld.instructions,
+                    defaultColor: Colors.grey,
+                    colors: const SMapWorldColors(
+                      uS: Colors.purple,
+                      cN: Colors.pink,
+                      iN: Colors.purple,
+                    ).toMap(),
+                    callback: (id, name, tapDetails) {
+                      print(id);
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _beenButton(),
+              _planButton()
+            ],
+          )
         ],
       ),
     );

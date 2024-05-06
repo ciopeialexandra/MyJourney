@@ -1,15 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:myjorurney/screens/home_page.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import 'package:provider/provider.dart';
 import '../data/globals.dart';
 import '../services/api_constants.dart';
-import '../services/chat-provider.dart';
-import '../services/models-provider.dart';
-import '../widgets/chat_widget.dart';
-import '../widgets/text_widget.dart';
 import 'package:http/http.dart' as http;
 
 class ChatScreen extends StatefulWidget {
@@ -25,6 +21,16 @@ class _ChatScreenState extends State<ChatScreen> {
   bool resultDisplayed = false;
   String img = "";
   String _generatedImageUrl = '';
+  String chatGptAnswer = "";
+  final spinkit = SpinKitFadingCircle(
+    itemBuilder: (BuildContext context, int index) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: index.isEven ? Colors.red : Colors.green,
+        ),
+      );
+    },
+  );
 
   @override
   void initState() {
@@ -39,6 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
     focusNode.dispose();
     super.dispose();
   }
+
   Future<void> generateImage() async {
     final String apiKey = API_KEY;
     final String prompt = img;
@@ -63,35 +70,69 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _generatedImageUrl = responseData['data'][0]['url'];
       });
-      print(_generatedImageUrl);
+      log (_generatedImageUrl);
     } else {
       // Handle API error
-      print('Error generating image: ${response.reasonPhrase}');
+      log ('Error generating image: ${response.reasonPhrase}');
     }
   }
 
-  Future<void> showResult(ModelsProvider modelsProvider, ChatProvider chatProvider) async {
-    await sendMessageFCT(
-    modelsProvider: modelsProvider,
-    chatProvider: chatProvider);
+  final List<Map<String, String>> messages = [];
+  String openAiKey = API_KEY;
+
+  Future<void> chatGPTAPI(String prompt) async {
+    messages.add({
+      'role': 'user',
+      'content': prompt,
+    });
+    try {
+      final res = await http.post(
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $openAiKey',
+        },
+        body: jsonEncode({
+          "model": "gpt-3.5-turbo",
+          "messages": messages,
+        }),
+      );
+
+      if (res.statusCode == 200) {
+        String content =
+        jsonDecode(res.body)['choices'][0]['message']['content'];
+        content = content.trim();
+
+        messages.add({
+          'role': 'assistant',
+          'content': content,
+        });
+        chatGptAnswer = content;
+      }
+      log ('An internal error occurred');
+    } catch (e) {
+      log (e.toString());
+    }
   }
 
   Widget _title() {
     return const Text('My Journey');
   }
+
   Widget _backButton() {
     return BackButton(
       onPressed: () {
-      setState(() {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                const PlanTripPage()));
-      });
-    },
+        setState(() {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                  const PlanTripPage()));
+        });
+      },
     );
   }
+
   Widget _addButton() {
     return ElevatedButton(
       onPressed: () {
@@ -107,6 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
       child: const Text('Add to wishlist'),
     );
   }
+
   Widget _tryAgainButton() {
     return ElevatedButton(
       onPressed: () {
@@ -121,48 +163,57 @@ class _ChatScreenState extends State<ChatScreen> {
       child: const Text('Try again'),
     );
   }
+  Future<void> waitingForResult() async{
+    String msg = getMessage();
+    await chatGPTAPI(msg);
+    img =
+    "A realistic picture portraying a trip to $chatGptAnswer ";
+    await generateImage();
+}
+
   @override
   Widget build(BuildContext context) {
-    final modelsProvider = Provider.of<ModelsProvider>(context);
-    final chatProvider = Provider.of<ChatProvider>(context);
-    if(resultDisplayed == false) {
-      showResult(modelsProvider, chatProvider);
+    if (resultDisplayed == false) {
       resultDisplayed = true;
+      waitingForResult();
     }
-    return Scaffold(
-    appBar: AppBar(
-      actions: [
-        _backButton(),
-      ],
-      title: _title(),
-    ),
-      body: Expanded(
-        child: Column(
-          children: [
-            Flexible(
-              child: ListView.builder(
-                  controller: _listScrollController,
-                  itemCount: chatProvider.getChatList.length,
-                  itemBuilder: (context, index) {
-                    return ChatWidget(
-                      msg: chatProvider
-                          .getChatList[index].msg,
-                      chatIndex: chatProvider.getChatList[index]
-                          .chatIndex,
-                      shouldAnimate:
-                      chatProvider.getChatList.length - 1 == index,
-                    );
-                  }
-              ),
-            ),
-            if (_generatedImageUrl.isNotEmpty)
-              Image.network(_generatedImageUrl),
-            _addButton(),
-            _tryAgainButton()
-          ],
+    if (_generatedImageUrl.isNotEmpty && chatGptAnswer.isNotEmpty) {
+      return Scaffold(
+          appBar: AppBar(
+            actions: [
+              _backButton(),
+            ],
+            title: _title(),
+          ),
+          body: SingleChildScrollView(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(chatGptAnswer),
+                    Image.network(_generatedImageUrl),
+                    _addButton(),
+                    _tryAgainButton()
+                  ]
+              )
+          )
+      );
+    }
+    else {
+      return const Scaffold(
+        body: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+            SpinKitCircle(
+            color: Colors.grey,
+              size: 70.0,
+            )
+            ]
         ),
-      ),
-    );
+      ));
+  }
   }
 
   void scrollListToEND() {
@@ -171,10 +222,7 @@ class _ChatScreenState extends State<ChatScreen> {
         duration: const Duration(seconds: 2),
         curve: Curves.easeOut);
   }
-  Future<void> sendMessageFCT(
-      {required ModelsProvider modelsProvider,
-        required ChatProvider chatProvider}) async {
-    try {
+  String getMessage(){
       String msgRequest = "";
       String days = "";
       String destination = "";
@@ -191,13 +239,13 @@ class _ChatScreenState extends State<ChatScreen> {
       if(isPlanRequest == true){
         for(int i=0;i<request[requestIndex].userName.length;i++){
           if(request[requestIndex].plan[i].isTen && !days.contains("10")){
-            days = "${days}or 10";
+            days = "$days or 10";
           }
           else if(request[requestIndex].plan[i].isSeven && days.contains("7")){
-            days = "${days}or 7";
+            days = "$days or 7";
           }
           else if(request[requestIndex].plan[i].isThree && days.contains("3")){
-            days = "${days}or 3";
+            days = "$days or 3";
           }
           if(request[requestIndex].plan[i].isTropical && !msgRequest.contains("tropical")){
             days = "$msgRequest, be a tropical place";
@@ -251,24 +299,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if(plan.isNature && !msgRequest.contains("nature")){
         msg = "$msg be a lot of nature ";
       }
-      msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is long recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
-      await chatProvider.sendMessageAndGetAnswers(
-          msg: msg, chosenModelId: modelsProvider.getCurrentModel);
-      img ="A realistic picture portraying a trip to ${chatProvider
-          .getChatList[0].msg} ";
-      generateImage();
-    } catch (error) {
-      log("error $error");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: TextWidget(
-          label: error.toString(),
-        ),
-        backgroundColor: Colors.red,
-      ));
-    } finally {
-      setState(() {
-        scrollListToEND();
-      });
-    }
+      msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
+      return msg;
   }
 }
