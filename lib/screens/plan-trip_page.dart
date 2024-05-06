@@ -154,6 +154,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
     DatabaseReference ref = FirebaseDatabase.instance.ref("request/$uuid");
     await ref.set({
       "finalResult": "",
+      "status": "pending"
 
     });
   }
@@ -472,8 +473,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
     String? userId = user?.uid;
     String? idUpdate = "";
     final postData = {
-      "finalResult": result,
-      "accept": "not yet"
+      "finalResult": "",
+      "status": "completed"
     };
     final Map<String, Map> updates = {};
     String key = request[requestIndex].key;
