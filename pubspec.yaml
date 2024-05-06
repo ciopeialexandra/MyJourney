@@ -51,6 +51,7 @@ dependencies:
   http: ^0.13.5
   provider: ^6.1.2
   openai_dalle_wrapper: ^1.0.0
+  swipe_cards: ^2.0.0+1
 
 dev_dependencies:
   flutter_test:

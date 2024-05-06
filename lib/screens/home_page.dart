@@ -12,6 +12,7 @@ import '../data/globals.dart';
 import '../services/chat-provider.dart';
 import '../services/models-provider.dart';
 import 'add-friend_page.dart';
+import 'choose-trip_page.dart';
 import 'notification_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -67,6 +68,41 @@ class _HomePageState extends State<HomePage> {
       print("Error at searching requests");
     }
     return notificationNumber;
+  }
+  Future<int> _areRequestDetailsCompleted() async{
+    //verifies if there are any trip requests for this user and returns their number
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    User? user = FirebaseAuth.instance.currentUser;
+    int requestDetailsCompletedNumber = 0;
+    try {
+      DataSnapshot snapshot = await ref.child('request').get();
+      for (var requestLocal in snapshot.children) {
+        if (requestLocal
+            .child("status")
+            .value!
+            .toString()
+            .contains("completed")
+        ) {
+          DataSnapshot snapshotPlan = await ref.child('plan').get();
+          for (var planLocal in snapshotPlan.children) {
+            if (requestLocal.key == planLocal
+                .child("requestId")
+                .value!
+                .toString() &&
+                planLocal
+                    .child("userId")
+                    .value!
+                    .toString() == user?.uid
+            ) {
+              requestDetailsCompletedNumber++;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      print("Error at searching requests");
+    }
+    return requestDetailsCompletedNumber;
   }
 
   Widget _beenButton() {
@@ -193,6 +229,42 @@ class _HomePageState extends State<HomePage> {
       child: const Text('Plan a trip'),
     );
   }
+  Widget _requestAlert() {
+    return AlertDialog(
+      title: const Text('Details completed'),
+      content: const Text(
+          'Your friends completed the trip details, choose your destination'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () =>
+              setState(() {
+                isPlanRequest = false;
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                        const ChooseTripPage()));
+              }),
+          child: const Text('Continue'),
+        ),
+        // TextButton(
+        //   onPressed: () =>
+        //       setState(() {
+        //         isFriendsTrip = false;
+        //         isPlanRequest = false;
+        //         Navigator.push(
+        //             context,
+        //             MaterialPageRoute(
+        //               builder: (context) =>
+        //               const PlanTripPage(),
+        //             )
+        //         );
+        //       }),
+        //   child: const Text('Choose later'),
+        // ),
+      ],
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,51 +280,64 @@ class _HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           FutureBuilder<int>(
-              future: _isRequest(), // a previously-obtained Future<String> or null
+              future: _areRequestDetailsCompleted(), // a previously-obtained Future<String> or null
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-              if (snapshot.hasData) {
-              return Container(
-                child:  _notification()
-              );
+                if (snapshot.hasData) {
+                  return Container(
+                      child:  _requestAlert()
+                  );
+                }
+                else{
+                  FutureBuilder<int>(
+                      future: _isRequest(), // a previously-obtained Future<String> or null
+                      builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                        if (snapshot.hasData) {
+                          return Container(
+                              child: _notification()
+                          );
+                        }
+                        return const Text(" ");
+                      }
+                      );
+                  Expanded(
+                    child: SizedBox(
+                      height: double.infinity,
+                      width: double.infinity,
+                      child: InteractiveViewer(
+                        boundaryMargin: const EdgeInsets.all(double.infinity),
+                        minScale: 0.1,
+                        maxScale: 2.0,
+                        child: GestureDetector(
+                          onTap: () {
+                          // Handle tap on the map
+                          },
+                          child: SimpleMap(
+                            instructions: SMapWorld.instructions,
+                            defaultColor: Colors.grey,
+                            colors: const SMapWorldColors(
+                              uS: Colors.purple,
+                              cN: Colors.pink,
+                              iN: Colors.purple,
+                            ).toMap(),
+                            callback: (id, name, tapDetails) {
+                              print(id);
+                              },
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _beenButton(),
+                      _planButton()
+                    ],
+                  );
+                }
+                return const Text("");
               }
-                return const Text(" ");
-              }
-              ),
-          Expanded(
-            child: SizedBox(
-              height: double.infinity,
-              width: double.infinity,
-              child: InteractiveViewer(
-                boundaryMargin: const EdgeInsets.all(double.infinity),
-                minScale: 0.1,
-                maxScale: 2.0,
-                child: GestureDetector(
-                  onTap: () {
-                    // Handle tap on the map
-                  },
-                  child: SimpleMap(
-                    instructions: SMapWorld.instructions,
-                    defaultColor: Colors.grey,
-                    colors: const SMapWorldColors(
-                      uS: Colors.purple,
-                      cN: Colors.pink,
-                      iN: Colors.purple,
-                    ).toMap(),
-                    callback: (id, name, tapDetails) {
-                      print(id);
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _beenButton(),
-              _planButton()
-            ],
           ),
         ],
       ),
