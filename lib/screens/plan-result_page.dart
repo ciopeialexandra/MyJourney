@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:myjorurney/screens/home_page.dart';
@@ -22,15 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String img = "";
   String _generatedImageUrl = '';
   String chatGptAnswer = "";
-  final spinkit = SpinKitFadingCircle(
-    itemBuilder: (BuildContext context, int index) {
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: index.isEven ? Colors.red : Colors.green,
-        ),
-      );
-    },
-  );
+  late List parts;
 
   @override
   void initState() {
@@ -76,7 +69,20 @@ class _ChatScreenState extends State<ChatScreen> {
       log ('Error generating image: ${response.reasonPhrase}');
     }
   }
-
+  Widget _countryAndCityText(){
+    return DefaultTextStyle(
+      style: const TextStyle(
+          fontSize: 30.0,
+          color: Colors.black87
+      ),
+      child: AnimatedTextKit(
+        animatedTexts : [
+          TyperAnimatedText(parts[0]),
+        ],
+        isRepeatingAnimation: false,
+      ),
+    );
+  }
   final List<Map<String, String>> messages = [];
   String openAiKey = API_KEY;
 
@@ -132,7 +138,58 @@ class _ChatScreenState extends State<ChatScreen> {
       },
     );
   }
+  Widget refreshButton() {
+      return TextButton(
+        onPressed: () {
+          setState(() {
+            isPlanRequest = true;
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                    const ChatScreen()));
+          });
+        },
 
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Icon(Icons.refresh_outlined,size: 30.0,),
+          ],
+        ),
+      );
+    }
+  Widget heartButton() {
+    return TextButton(
+      onPressed: () {
+        setState(() {
+          isPlanRequest = true;
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                  const HomePage()));
+        });
+      },
+
+      style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            Icons.favorite,
+            size: 30.0,),
+        ],
+      ),
+    );
+  }
   Widget _addButton() {
     return ElevatedButton(
       onPressed: () {
@@ -163,6 +220,10 @@ class _ChatScreenState extends State<ChatScreen> {
       child: const Text('Try again'),
     );
   }
+  void trimResult(){
+    int idx = chatGptAnswer.indexOf("Itinerary");
+    parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx+1).trim()];
+  }
   Future<void> waitingForResult() async{
     String msg = getMessage();
     await chatGPTAPI(msg);
@@ -178,6 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
       waitingForResult();
     }
     if (_generatedImageUrl.isNotEmpty && chatGptAnswer.isNotEmpty) {
+      trimResult();
       return Scaffold(
           appBar: AppBar(
             actions: [
@@ -185,35 +247,52 @@ class _ChatScreenState extends State<ChatScreen> {
             ],
             title: _title(),
           ),
-          body: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(chatGptAnswer),
-                    Image.network(_generatedImageUrl),
-                    _addButton(),
-                    _tryAgainButton()
-                  ]
-              )
+          body:
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+                children: [
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.network(_generatedImageUrl),
+                            const SizedBox(height: 20),
+                            _countryAndCityText(),
+                            //Text(parts[1]),
+                          ]
+                      )
+                  ),
+                  Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      heartButton(),
+                      refreshButton(),
+                      ]
+                  )
+                ]
+            ),
           )
       );
     }
     else {
       return const Scaffold(
-        body: Padding(
+          body: Padding(
             padding: EdgeInsets.all(20.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-            SpinKitCircle(
-            color: Colors.grey,
-              size: 70.0,
-            )
-            ]
-        ),
-      ));
-  }
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Text("Waiting for the results",),
+                  SpinKitCircle(
+                    color: Colors.grey,
+                    size: 70.0,
+                  )
+                ]
+            ),
+          ));
+    }
   }
 
   void scrollListToEND() {

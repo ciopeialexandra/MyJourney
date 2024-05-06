@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +9,7 @@ import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import 'package:provider/provider.dart';
 import '../data/globals.dart';
-import '../services/chat-provider.dart';
-import '../services/models-provider.dart';
 import 'add-friend_page.dart';
 import 'choose-trip_page.dart';
 import 'notification_page.dart';
@@ -55,12 +54,12 @@ class _HomePageState extends State<HomePage> {
     notificationNumber = 0;
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
-      for (var plan_local in snapshot.children) {
-        if (plan_local
+      for (var planLocal in snapshot.children) {
+        if (planLocal
             .child("userId")
             .value!
             .toString() == user?.uid
-            && plan_local
+            && planLocal
                 .child("budget")
                 .value!
                 .toString()
@@ -69,7 +68,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } catch (error) {
-      print("Error at searching requests");
+      log("Error at searching requests");
     }
     return notificationNumber;
   }
@@ -105,7 +104,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } catch (error) {
-      print("Error at searching requests");
+      log("Error at searching requests");
     }
     return requestDetailsCompletedNumber;
   }
@@ -223,7 +222,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _requestAlert() {
     return AlertDialog(
-      title: const Text('Details completed'),
+      title: const Text('Request completed'),
       content: const Text(
           'Your friends completed the trip details, choose your destination'),
       actions: <Widget>[
@@ -273,18 +272,6 @@ class _HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           FutureBuilder<int>(
-              future: _areRequestDetailsCompleted(),
-              // a previously-obtained Future<String> or null
-              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                if (snapshot.hasData) {
-                  // return Container(
-                  //  child:  _requestAlert()
-                  // );
-                }
-                return const Text("");
-              }
-          ),
-          FutureBuilder<int>(
               future: _isRequest(),
               // a previously-obtained Future<String> or null
               builder: (BuildContext context,
@@ -295,6 +282,18 @@ class _HomePageState extends State<HomePage> {
                   );
                 }
                 return const Text(" ");
+              }
+          ),
+          FutureBuilder<int>(
+              future: _areRequestDetailsCompleted(),
+              // a previously-obtained Future<String> or null
+              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                if (snapshot.hasData) {
+                   return Container(
+                   child:  _requestAlert()
+                  );
+                }
+                return const Text("");
               }
           ),
           Expanded(

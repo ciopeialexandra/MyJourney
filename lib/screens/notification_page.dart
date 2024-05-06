@@ -3,12 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import 'package:provider/provider.dart';
 import '../data/globals.dart';
 import '../data/plan.dart';
 import '../data/request.dart';
-import '../services/chat-provider.dart';
-import '../services/models-provider.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -23,7 +20,6 @@ class _NotificationPageState extends State<NotificationPage> {
     //verifies if there are any trip requests for this user and adds their details to a list
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     User? user = FirebaseAuth.instance.currentUser;
-    int notificationNumber = 0;
     String requestId = "";
     String userIdRequest = "";
     String userPhoneRequest = "";
@@ -32,22 +28,22 @@ class _NotificationPageState extends State<NotificationPage> {
     Request requestLocal = Request("", [], [], []);
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
-      for (var plan_local in snapshot.children) {
-        if (plan_local
+      for (var planLocal in snapshot.children) {
+        if (planLocal
             .child("userId")
             .value!
             .toString() == user?.uid
-            && plan_local
+            && planLocal
                 .child("budget")
                 .value!
                 .toString().isEmpty) { //aici cautam daca userul curent are vreun request deschis
           Plan localPlan = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,"");
-          requestId = plan_local.child("requestId").value!.toString();
+          requestId = planLocal.child("requestId").value!.toString();
           requestLocal.key = requestId;
           DataSnapshot requestPlan = await ref.child('plan').get();
-          localPlan.setPlanKey(plan_local.key);
+          localPlan.setPlanKey(planLocal.key);
           for (var requestLocal in requestPlan.children) { //cautam in db plan-ul userului care a trimis requestul
-            if(requestLocal.child("requestId").value!.toString() == requestId&&requestLocal.key!=plan_local.key){
+            if(requestLocal.child("requestId").value!.toString() == requestId&&requestLocal.key!=planLocal.key){
              userIdRequest = requestLocal.child("userId").value!.toString();
             }
           }
@@ -58,45 +54,44 @@ class _NotificationPageState extends State<NotificationPage> {
              userNameRequest = userLocal.child("name").value!.toString();
             }
           }
-          notificationNumber++;
-          localPlan.date = plan_local.child("date").toString();
-          localPlan.budget = plan_local.child("budget").toString();
-           if (plan_local.child("isBeach").toString() == "true") {
+          localPlan.date = planLocal.child("date").toString();
+          localPlan.budget = planLocal.child("budget").toString();
+           if (planLocal.child("isBeach").toString() == "true") {
              localPlan.isSwimming = true;
            }
            else
              {
                localPlan.isSwimming = false;
              }
-          if (plan_local.child("isCity").toString() == "true") {
+          if (planLocal.child("isCity").toString() == "true") {
             localPlan.isBigCity = true;
           }
           else
           {
             localPlan.isBigCity = false;
           }
-          if (plan_local.child("isHistorical").toString() == "true") {
+          if (planLocal.child("isHistorical").toString() == "true") {
             localPlan.isHistoricalHeritage = true;
           }
           else
           {
             localPlan.isHistoricalHeritage = false;
           }
-          if (plan_local.child("isNature").toString() == "true") {
+          if (planLocal.child("isNature").toString() == "true") {
             localPlan.isNature = true;
           }
           else
           {
             localPlan.isNature = false;
           }
-          if (plan_local.child("isSki").toString() == "true") {
+          if (planLocal.child("isSki").toString() == "true") {
             localPlan.isSkiing = true;
           }
           else
           {
             localPlan.isSkiing = false;
           }
-          if (plan_local.child("isTropical").toString() == "true") {
+          if (planLocal.child("isTropical").toString() == "true") {
             localPlan.isTropical = true;
           }
           else
@@ -128,33 +123,14 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
     );
   }
-  void navigateToPlan(){
+  void navigateToPlan() {
     isPlanRequest = true;
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                MultiProvider(
-                  providers: [
-                    ChangeNotifierProvider(
-                      create: (_) => ModelsProvider(),
-                    ),
-                    ChangeNotifierProvider(
-                      create: (_) => ChatProvider(),
-                    ),
-                  ],
-                  child: MaterialApp(
-                    title: 'Flutter ChatBOT',
-                    debugShowCheckedModeBanner: false,
-                    theme: ThemeData(
-                        scaffoldBackgroundColor: Colors.white,
-                        appBarTheme: const AppBarTheme(
-                          color: Colors.white,
-                        )),
-                    home: const PlanTripPage(),
-                  ),
-                )
-        )
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+        const PlanTripPage(),
+      ),
     );
   }
   Widget _title() {
