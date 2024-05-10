@@ -24,6 +24,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final User? user = Auth().currentUser;
   int notificationNumber = 0;
+  int numberOfRequests = 0;
 
   Future<void> signOut() async {
     await Auth().signOut();
@@ -35,15 +36,25 @@ class _HomePageState extends State<HomePage> {
 
 
   Widget _signOutButton() {
-    return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: TextButton(
-            onPressed: signOut,
-            style: OutlinedButton.styleFrom(
-                side: BorderSide.none
-            ),
-            child: const Text('Sign Out')
-        )
+    return TextButton(
+      onPressed: () {
+        signOut();
+      },
+
+      style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            Icons.logout_outlined,
+            size: 30.0,
+            color: Colors.black,
+          ),
+        ],
+      ),
     );
   }
 
@@ -77,36 +88,46 @@ class _HomePageState extends State<HomePage> {
     //verifies if there are any trip requests for this user and returns their number
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     User? user = FirebaseAuth.instance.currentUser;
+    int requestParticipants = 0;
     int requestDetailsCompletedNumber = 0;
     try {
-      DataSnapshot snapshot = await ref.child('request').get();
-      for (var requestLocal in snapshot.children) {
-        if (requestLocal
-            .child("status")
-            .value!
-            .toString()
-            .contains("completed")
-        ) {
           DataSnapshot snapshotPlan = await ref.child('plan').get();
           for (var planLocal in snapshotPlan.children) {
-            if (requestLocal.key == planLocal
-                .child("requestId")
-                .value!
-                .toString() &&
-                planLocal
+            if (planLocal
                     .child("userId")
                     .value!
-                    .toString() == user?.uid
+                    .toString() == user?.uid && planLocal.child("budget").value.toString().isNotEmpty
             ) {
-              requestDetailsCompletedNumber++;
+              globalRequest.key = planLocal.child("requestId").value.toString();
+              requestParticipants = 0;
+              for (var planLocal in snapshotPlan.children) {
+                if (planLocal
+                    .child("requestId")
+                    .value!
+                    .toString() == globalRequest.key && planLocal.child("budget").value.toString().isEmpty
+                ) {
+                  return 0;
+                }
+                else if(planLocal
+                    .child("requestId")
+                    .value!
+                    .toString() == globalRequest.key && planLocal.child("budget").value.toString().isNotEmpty){
+                  requestParticipants++;
+                }
+              }
+              if(requestParticipants > 1) {
+                requestDetailsCompletedNumber++;
+              }
+              }
             }
-          }
-        }
-      }
     } catch (error) {
       log("Error at searching requests");
     }
-    return requestDetailsCompletedNumber;
+    numberOfRequests = requestDetailsCompletedNumber;
+    if(requestDetailsCompletedNumber > 0) {
+      return requestDetailsCompletedNumber;
+    }
+    return 0;
   }
 
   Widget _beenButton() {
@@ -288,7 +309,7 @@ class _HomePageState extends State<HomePage> {
               future: _areRequestDetailsCompleted(),
               // a previously-obtained Future<String> or null
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                if (snapshot.hasData) {
+                if (snapshot.hasData&& numberOfRequests >0) {
                    return Container(
                    child:  _requestAlert()
                   );
@@ -317,7 +338,7 @@ class _HomePageState extends State<HomePage> {
                       iN: Colors.purple,
                     ).toMap(),
                     callback: (id, name, tapDetails) {
-                      print(id);
+                      log(id);
                     },
                   ),
                 ),

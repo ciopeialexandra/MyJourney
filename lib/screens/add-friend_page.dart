@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
 import '../data/globals.dart';
 
+
 class AddFriendPage extends StatefulWidget {
   const AddFriendPage({super.key});
 

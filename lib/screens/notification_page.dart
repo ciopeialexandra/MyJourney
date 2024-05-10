@@ -44,25 +44,25 @@ class _NotificationPageState extends State<NotificationPage> {
           localPlan.setPlanKey(planLocal.key);
           for (var requestLocal in requestPlan.children) { //cautam in db plan-ul userului care a trimis requestul
             if(requestLocal.child("requestId").value!.toString() == requestId&&requestLocal.key!=planLocal.key){
-             userIdRequest = requestLocal.child("userId").value!.toString();
+              userIdRequest = requestLocal.child("userId").value!.toString();
             }
           }
           DataSnapshot requestUser = await ref.child('user').get();
           for (var userLocal in requestUser.children) {
             if(userLocal.key == userIdRequest ){ //cautam in user user-ul care a trimis requestul
-             userPhoneRequest = userLocal.child("telephone").value!.toString();
-             userNameRequest = userLocal.child("name").value!.toString();
+              userPhoneRequest = userLocal.child("telephone").value!.toString();
+              userNameRequest = userLocal.child("name").value!.toString();
             }
           }
           localPlan.date = planLocal.child("date").toString();
           localPlan.budget = planLocal.child("budget").toString();
-           if (planLocal.child("isBeach").toString() == "true") {
-             localPlan.isSwimming = true;
-           }
-           else
-             {
-               localPlan.isSwimming = false;
-             }
+          if (planLocal.child("isBeach").toString() == "true") {
+            localPlan.isSwimming = true;
+          }
+          else
+          {
+            localPlan.isSwimming = false;
+          }
           if (planLocal.child("isCity").toString() == "true") {
             localPlan.isBigCity = true;
           }

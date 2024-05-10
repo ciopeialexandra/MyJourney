@@ -11,3 +11,5 @@ List<bool> isSelected = List<bool>.filled(100, false);
 bool isFriendsTrip = false;
 bool isPlanRequest = false;
 int requestIndex = -1;
+bool requestUpdateNeeded = false;
+Request globalRequest = Request("", List.empty(growable: true), List.empty(growable: true), List.empty(growable: true));

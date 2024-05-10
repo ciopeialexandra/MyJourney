@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:contacts_service/contacts_service.dart';
@@ -128,6 +129,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
       "budget": "",
       "departure": "",
       "date": "",
+      "days": "",
       "isSki": false,
       "isCity": false,
       "isHistorical": false,
@@ -169,11 +171,22 @@ class _PlanTripPageState extends State<PlanTripPage> {
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
     DatabaseReference ref = FirebaseDatabase.instance.ref("plan/$uuid");
+    String days = "";
+    if(plan.isTen == true){
+      days = "10";
+    }
+    else if(plan.isSeven == true){
+      days = "7";
+    }
+    else if(plan.isThree == true){
+      days = "3";
+    }
     _createRequest();
     await ref.set({
       "userId": userId,
       "budget": plan.getPlanBudget(),
       "date": plan.getPlanDate(),
+      "days": days,
       "departure": plan.getPlanTown(),
       "isSki": plan.getPlanSki(),
       "isCity": plan.getPlanCity(), //de adaugat verificari sa nu fie niciuna goala
@@ -184,13 +197,14 @@ class _PlanTripPageState extends State<PlanTripPage> {
       "isTropical": plan.getPlanTropical(),
       "requestId": requestId
     });
+    contacts = await ContactsService.getContacts();
+    print(contacts.length);
     for(int i=0;i<contacts.length;i++){
       if(isSelected[i]==true){
         _createPlanContact(contacts[i].phones!.elementAt(0).value.toString());
       }
     }
   }
-
   Widget _nextButton() {
     if (_selectedDateRange != null) {
       plan.setPlanBudget(budgetController.text);
@@ -220,7 +234,6 @@ class _PlanTripPageState extends State<PlanTripPage> {
                               ),
                 );
               }
-              //if (isFriendsTrip == false) {
               if(isPlanRequest == true && isFriendsTrip==false){
                 _updatePlan();
                 waitVerifyRequestFinished();
@@ -265,15 +278,27 @@ class _PlanTripPageState extends State<PlanTripPage> {
         curve: Curves.easeOut);
   }
   void _updatePlan() async{
+    requestUpdateNeeded = true;
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
+    String days = "";
     String? idUpdate = "";
+    if(plan.isTen == true){
+      days = "10";
+    }
+    else if(plan.isSeven == true){
+      days = "7";
+    }
+    else if(plan.isThree == true){
+      days = "3";
+    }
     //String planId = request[requestIndex].plan
     final postData = {
       "userId": userId,
       "budget": plan.getPlanBudget(),
       "departure": plan.getPlanTown(),
       "date": plan.getPlanDate(),
+      "days": days,
       "isSki": plan.getPlanSki(),
       "isCity": plan.getPlanCity(),
       "isHistorical": plan.getPlanHistorical(),
@@ -624,13 +649,6 @@ class _PlanTripPageState extends State<PlanTripPage> {
   }
   @override
   Widget build(BuildContext context) {
-    // final modelsProvider = Provider.of<ModelsProvider>(context);
-    // final chatProvider = Provider.of<ChatProvider>(context);
-    // if(resultUpdated == false) {
-    //   showResult(modelsProvider, chatProvider);
-    //   result = chatProvider.getChatList[0].msg;
-    //   resultUpdated = true;
-    // }
     return Scaffold(
       appBar: AppBar(
         title: _title(),

@@ -4,7 +4,6 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:myjorurney/screens/home_page.dart';
-import 'package:myjorurney/screens/plan-trip_page.dart';
 import '../data/globals.dart';
 import '../services/api_constants.dart';
 import 'package:http/http.dart' as http;
@@ -125,19 +124,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return const Text('My Journey');
   }
 
-  Widget _backButton() {
-    return BackButton(
-      onPressed: () {
-        setState(() {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                  const PlanTripPage()));
-        });
-      },
-    );
-  }
   Widget refreshButton() {
       return TextButton(
         onPressed: () {
@@ -190,36 +176,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-  Widget _addButton() {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                  const HomePage()));
-        });
-        // plan.setPlanResult(resultMsg);
-      },
-      child: const Text('Add to wishlist'),
-    );
-  }
-
-  Widget _tryAgainButton() {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                  const HomePage()));
-        });
-      },
-      child: const Text('Try again'),
-    );
-  }
   void trimResult(){
     int idx = chatGptAnswer.indexOf("Itinerary");
     parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx+1).trim()];
@@ -242,9 +198,6 @@ class _ChatScreenState extends State<ChatScreen> {
       trimResult();
       return Scaffold(
           appBar: AppBar(
-            actions: [
-              _backButton(),
-            ],
             title: _title(),
           ),
           body:
@@ -327,25 +280,25 @@ class _ChatScreenState extends State<ChatScreen> {
             days = "$days or 3";
           }
           if(request[requestIndex].plan[i].isTropical && !msgRequest.contains("tropical")){
-            days = "$msgRequest, be a tropical place";
+            msgRequest = "$msgRequest, be a tropical place";
           }
           if(request[requestIndex].plan[i].isShopping && !msgRequest.contains("shopping")){
-            days = "$msgRequest, have places to go shopping";
+            msgRequest = "$msgRequest, have places to go shopping";
           }
           if(request[requestIndex].plan[i].isSwimming && !msgRequest.contains("swim")){
-            days = "$msgRequest, have beaches where you can swim close by ";
+            msgRequest = "$msgRequest, have beaches where you can swim close by ";
           }
           if(request[requestIndex].plan[i].isBigCity && !msgRequest.contains("city")){
-            days = "$msgRequest, be a big city";
+            msgRequest = "$msgRequest, be a big city";
           }
           if(request[requestIndex].plan[i].isSkiing && !msgRequest.contains("mountains")){
-            days = "$msgRequest, have mountains ";
+            msgRequest = "$msgRequest, have mountains ";
           }
           if(request[requestIndex].plan[i].isNature && !msgRequest.contains("nature")){
-            days = "$msgRequest, be a lot of nature ";
+            msgRequest = "$msgRequest, be a lot of nature ";
           }
           if(request[requestIndex].plan[i].isHistoricalHeritage && !msgRequest.contains("historical")){
-            days = "$msgRequest, have historical attractions ";
+            msgRequest = "$msgRequest, have historical attractions ";
           }
           if(request[requestIndex].plan[i].budget.compareTo( plan.getPlanBudget())>0){
             budget = request[requestIndex].plan[i].budget;
@@ -356,7 +309,7 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         }
       }
-      String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of ${plan.getPlanBudget()} euro, for $days days, from $destination. I want the destination to";
+      String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of ${plan.getPlanBudget()} euro, for $days days, from $destination. I want the destination to: $msgRequest";
       if(plan.isShopping && !msgRequest.contains("shopping")){
         msg = "$msg, have places to go shopping ";
       }
