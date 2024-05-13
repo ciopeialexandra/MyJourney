@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
+import 'package:myjorurney/screens/home_page.dart';
+import 'package:uuid/uuid.dart';
 import '../data/globals.dart';
 import '../data/plan.dart';
 import '../data/request.dart';
@@ -29,7 +32,9 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   late List parts;
   List<Request> requestWait = List.empty(growable: true);
   String msgGlobal = "";
-
+  int numberOfGeneratedResults = 0;
+  int swipeNumber = 0;
+  String resultKey = "";
 
   Future<void> generateImage() async {
     final String apiKey = API_KEY;
@@ -63,22 +68,29 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   }
   void trimResult(){
     int idx = chatGptAnswer.indexOf("Itinerary");
-    parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx+1).trim()];
+    parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx).trim()];
   }
   Future<void> _waitForRequestDetails() async {
      requestWait = await _getRequestDetails();
   }
   Future<void> waitingForResult(String msg) async{
-    for(int i=0;i<5;i++) {
+    for(int i=0;i<3;i++) {
       if(msg.isNotEmpty) {
         await chatGPTAPI(msg);
       }
       if (chatGptAnswer.isNotEmpty) {
         trimResult();
-        resultList.add(Result(_generatedImageUrl, parts[1], parts[0]));
         img =
         "A realistic picture portraying a trip to ${parts[0]} ";
         await generateImage();
+        resultList.add(Result(_generatedImageUrl, parts[1], parts[0]));
+        numberOfGeneratedResults++;
+        if(msgGlobal.contains("Except")) {
+          msgGlobal = "$msgGlobal, ${parts[0]}";
+        }
+        else {
+          msgGlobal = "$msgGlobal Except ${parts[0]}";
+        }
       }
     }
   }
@@ -134,6 +146,189 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       log (e.toString());
     }
   }
+  void _createResult(int index) async{
+      var uuid = const Uuid().v1();
+      DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
+      resultKey = uuid;
+      await ref.set({
+        "image": resultList[index].image,
+        "itinerary": resultList[index].itinerary,
+        "cityAndCountry": resultList[index].cityAndCountry,
+        "likes": resultList[index].numberOfLikes,
+        "requestId": globalRequest.key
+      });
+  }
+  void _updateResult() async{
+    String? idUpdate = "";
+    int numberOfLikes = 0;
+    String cityAndCountry = "";
+    String itinerary = "";
+    String requestId = "";
+    String image = "";
+
+    final Map<String, Map> updates = {};
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshot = await ref.child('result').get();
+      for (var resultLocal in snapshot.children) {
+        if (resultLocal
+            .key == resultKey) {
+          cityAndCountry = resultLocal.child("cityAndCountry").value.toString();
+          itinerary = resultLocal.child("itinerary").value.toString();
+          requestId = resultLocal.child("requestId").value.toString();
+          image = resultLocal.child("image").value.toString();
+          if(resultLocal.child("likes").value!.toString().contains("0")) {
+            numberOfLikes = 1;
+
+          }
+          else if(resultLocal.child("likes").value!.toString() == "1") {
+            numberOfLikes = 2;
+          }
+          if(resultLocal.child("likes").value!.toString() == "2") {
+            numberOfLikes = 3;
+          }
+        }
+      }
+    }catch (error) {
+      log(error.toString());
+    }
+    final postData = {
+      "image": image,
+      "itinerary": itinerary,
+      "cityAndCountry": cityAndCountry,
+      "likes": numberOfLikes,
+      "requestId": requestId
+    };
+    if(resultKey != "") {
+      updates["result/$resultKey"] = postData;
+      return FirebaseDatabase.instance.ref().update(updates);
+    }
+  }
+  void _updatePlan() async{
+    Plan planLocal = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,"");
+    int days = 0;
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userId = user?.uid;
+    final Map<String, Map> updates = {};
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshot = await ref.child('plan').get();
+      for (var planIterator in snapshot.children) {
+        if (planIterator
+            .child("userId").value.toString() == userId &&
+        planIterator.child("requestId").value.toString() == globalRequest.key
+        ) {
+          planLocal.key = planIterator.key!;
+          planLocal.date = planIterator.child("date").value.toString();
+          planLocal.budget = planIterator.child("budget").value.toString();
+          planLocal.town = planIterator.child("departure").value.toString();
+          if(planIterator.child("days").value.toString() == "7") {
+            planLocal.isSeven = true;
+            days = 7;
+          }
+          else if(planIterator.child("days").value.toString() == "3") {
+            planLocal.isThree = true;
+            days = 3;
+          }
+          else if(planIterator.child("days").value.toString() == "10") {
+            planLocal.isTen = true;
+            days = 10;
+          }
+          if(planIterator.child("isBeach").value.toString() == "true") {
+            planLocal.isSwimming = true;
+          }
+          if(planIterator.child("isHistorical").value.toString() == "true") {
+            planLocal.isHistoricalHeritage = true;
+          }
+          if(planIterator.child("isCity").value.toString() == "true") {
+            planLocal.isBigCity = true;
+          }
+          if(planIterator.child("isNature").value.toString() == "true") {
+            planLocal.isNature = true;
+          }
+          if(planIterator.child("isSki").value.toString() == "true") {
+            planLocal.isSkiing = true;
+          }
+          if(planIterator.child("isTropical").value.toString() == "true") {
+            planLocal.isTropical = true;
+          }
+          if(planIterator.child("isShopping").value.toString() == "true") {
+            planLocal.isShopping = true;
+          }
+        }
+      }
+    }catch (error) {
+      log(error.toString());
+    }
+    final postData = {
+      "userId": userId,
+      "budget": planLocal.getPlanBudget(),
+      "departure": planLocal.getPlanTown(),
+      "date": planLocal.getPlanDate(),
+      "days": days,
+      "isSki": plan.getPlanSki(),
+      "isCity": plan.getPlanCity(),
+      "isHistorical": plan.getPlanHistorical(),
+      "isBeach": plan.getPlanSwim(),
+      "isNature": plan.getPlanNature(),
+      "isSwim": plan.getPlanSwim(),
+      "isTropical": plan.getPlanTropical(),
+      "isShopping": plan.getPlanShopping(),
+      "requestId": globalRequest.key,
+      "voted": "yes"
+    };
+    if(planLocal.key != "") {
+      updates["plan/${planLocal.key}"] = postData;
+      return FirebaseDatabase.instance.ref().update(updates);
+    }
+  }
+  Widget closeButton() {
+    return TextButton(
+      onPressed: () {
+        setState(() {
+        });
+      },
+
+      style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            Icons.close_sharp,
+            size: 30.0,
+            color: Colors.black87,
+          ),
+        ],
+      ),
+    );
+  }
+  Widget heartButton() {
+    return TextButton(
+      onPressed: () {
+        setState(() {
+          
+        });
+      },
+
+      style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            Icons.favorite,
+            size: 30.0,
+            color: Colors.red,
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     _getRequestDetails();
@@ -143,62 +338,143 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         waitingForResult(msgGlobal);
     //     print("da");
        }
-     if (_generatedImageUrl.isNotEmpty && chatGptAnswer.isNotEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text("My Journey"),
-        ),
-        body: Center(
-          child: Stack(
-            children: resultList.map((card) {
-              int index = resultList.indexOf(card);
-              return Dismissible(
-                key: Key(card.cityAndCountry),
-                direction: DismissDirection.horizontal,
-                onDismissed: (direction) {
-                  setState(() {
-                    resultList.removeAt(index);
-                  });
-                  if (direction == DismissDirection.endToStart) {
-                    // Handle left swipe
-                    log("Swiped left on card $index");
-                  } else if (direction == DismissDirection.startToEnd) {
-                    // Handle right swipe
-                    log("Swiped right on card $index");
-                  }
-                },
-                background: Container(
-                  color: Colors.red,
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.thumb_down, color: Colors.white),
-                ),
-                secondaryBackground: Container(
-                  color: Colors.green,
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.thumb_up, color: Colors.white),
-                ),
-                child: Card(
-                  child:Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                   Center(
-                    child: Text(
-                      card.cityAndCountry,
-                      style: const TextStyle(fontSize: 24.0),
-                    ),
-                  ),
-                Center(
-                  child: Image.network(_generatedImageUrl),
-                )
-                  ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      );
-    }
+     if (numberOfGeneratedResults == 3) {
+       List<Result> resultListLocal = List.empty(growable: true);
+       resultListLocal = resultList;
+       if (swipeNumber != 3) {
+         return Scaffold(
+           appBar: AppBar(
+             title: const Text("My Journey"),
+           ),
+           body: Center(
+             child: Stack(
+               children: resultListLocal.map((card) {
+                 int index = resultListLocal.indexOf(card);
+                 return Dismissible(
+                     key: Key(card.cityAndCountry),
+                     direction: DismissDirection.horizontal,
+                     onDismissed: (direction) {
+                       setState(() {
+                         _createResult(index);
+                         resultListLocal.removeAt(index);
+                         swipeNumber ++;
+                       });
+                       if (direction == DismissDirection.endToStart) {
+                         // Handle left swipe
+                         _updateResult();
+                         print("da");
+                         log("Swiped left on card $index");
+                       } else if (direction == DismissDirection.startToEnd) {
+                         // Handle right swipe
+                         log("Swiped right on card $index");
+                       }
+                     },
+                     background: Container(
+                       color: Colors.red,
+                       alignment: Alignment.center,
+                       child: const Icon(Icons.thumb_down, color: Colors.white),
+                     ),
+                     secondaryBackground: Container(
+                       color: Colors.green,
+                       alignment: Alignment.center,
+                       child: const Icon(Icons.thumb_up, color: Colors.white),
+                     ),
+                     child: Card(
+                       child: Container(
+                         padding: const EdgeInsets.all(20),
+                         child: Column(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             Expanded(child:
+                             Column(
+                                 crossAxisAlignment: CrossAxisAlignment.center,
+                                 mainAxisAlignment: MainAxisAlignment.center,
+                                 children: [
+                                   Center(
+                                     child: Image.network(
+                                         resultListLocal[index].image),
+                                   ),
+                                   Center(
+                                     child: Text(
+                                       card.cityAndCountry,
+                                       style: const TextStyle(fontSize: 30.0),
+                                     ),
+                                   ),
+                                 ]
+                             ),
+                             ),
+                             Row(
+                                 crossAxisAlignment: CrossAxisAlignment.center,
+                                 mainAxisAlignment: MainAxisAlignment.center,
+                                 children: [
+                                   TextButton(
+                                     onPressed: () {
+                                       setState(() {
+
+                                       });
+                                     },
+
+                                     style: ElevatedButton.styleFrom(
+                                         backgroundColor: Colors.white
+                                     ),
+                                     child: const Row(
+                                       crossAxisAlignment: CrossAxisAlignment
+                                           .center,
+                                       mainAxisAlignment: MainAxisAlignment.end,
+                                       children: [
+                                         Icon(
+                                           Icons.favorite,
+                                           size: 30.0,
+                                           color: Colors.red,
+                                         ),
+                                       ],
+                                     ),
+                                   ),
+                                   const SizedBox(width: 20),
+                                   closeButton(),
+                                 ]
+                             )
+                           ],
+                         ),
+                       ),
+                     )
+                 );
+               }).toList(),
+             ),
+           ),
+         );
+       }
+       else {
+         _updatePlan();
+         return Scaffold(
+             appBar: AppBar(
+               title: const Text("My Journey"),
+             ),
+             body: Center(
+                 child: AlertDialog(
+                   title: const Text(
+                       'Your preferences are saved'),
+                   content: const Text(
+                       'After your friends will complete the request, you will receive a notification'),
+                   actions: <Widget>[
+                     TextButton(
+                       onPressed: () =>
+                           setState(() {
+                             Navigator.push(
+                                 context,
+                                 MaterialPageRoute(
+                                     builder: (context) =>
+                                     const HomePage()));
+                           }
+                           ),
+                       child: const Text('Continue'),
+                     ),
+                   ],
+                 )
+             )
+         );
+       }
+     }
      else{
       return  Scaffold(
           appBar: AppBar(

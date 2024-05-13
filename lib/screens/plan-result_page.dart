@@ -144,7 +144,10 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(Icons.refresh_outlined,size: 30.0,),
+            Icon(Icons.refresh_outlined,
+              size: 40.0,
+              color: Colors.black,
+            ),
           ],
         ),
       );
@@ -171,7 +174,37 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Icon(
             Icons.favorite,
-            size: 30.0,),
+            size: 40.0,
+            color: Colors.red,
+          ),
+        ],
+      ),
+    );
+  }
+  Widget itineraryButton() {
+    return TextButton(
+      onPressed: () {
+        setState(() {
+          // Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+              //    builder: (context) =>
+                //  const ItineraryPage()));
+        });
+      },
+
+      style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            Icons.place,
+            size: 40.0,
+            color: Colors.blueAccent,
+          ),
         ],
       ),
     );
@@ -213,6 +246,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             Image.network(_generatedImageUrl),
                             const SizedBox(height: 20),
                             _countryAndCityText(),
+                            itineraryButton(),
                             //Text(parts[1]),
                           ]
                       )

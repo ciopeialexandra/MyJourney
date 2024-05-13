@@ -15,6 +15,7 @@ class Plan {
   bool isSeven;
   bool isTen;
   String userId;
+  String voted = "no";
 
   Plan(this.key, this.budget, this.date, this.town,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isThree,this.isSeven,this.isTen,this.userId);
 

@@ -96,7 +96,8 @@ class _HomePageState extends State<HomePage> {
             if (planLocal
                     .child("userId")
                     .value!
-                    .toString() == user?.uid && planLocal.child("budget").value.toString().isNotEmpty
+                    .toString() == user?.uid && planLocal.child("budget").value.toString().isNotEmpty &&
+                planLocal.child("voted").value!.toString()=="no"
             ) {
               globalRequest.key = planLocal.child("requestId").value.toString();
               requestParticipants = 0;

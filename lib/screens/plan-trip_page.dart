@@ -137,7 +137,9 @@ class _PlanTripPageState extends State<PlanTripPage> {
       "isNature": false,
       "isSwim": false,
       "isTropical": false,
-      "requestId": requestId
+      "isShopping": false,
+      "requestId": requestId,
+      "voted": "no"
 
     });
   }
@@ -195,7 +197,9 @@ class _PlanTripPageState extends State<PlanTripPage> {
       "isNature": plan.getPlanNature(),
       "isSwim": plan.getPlanSwim(),
       "isTropical": plan.getPlanTropical(),
-      "requestId": requestId
+      "isShopping": plan.getPlanShopping(),
+      "requestId": requestId,
+      "voted": "no"
     });
     contacts = await ContactsService.getContacts();
     print(contacts.length);
@@ -306,7 +310,9 @@ class _PlanTripPageState extends State<PlanTripPage> {
       "isNature": plan.getPlanNature(),
       "isSwim": plan.getPlanSwim(),
       "isTropical": plan.getPlanTropical(),
-      "requestId": request[requestIndex].key
+      "isShopping": plan.getPlanShopping(),
+      "requestId": request[requestIndex].key,
+      "voted": "no"
     };
     final Map<String, Map> updates = {};
     DatabaseReference ref = FirebaseDatabase.instance.reference();
