@@ -60,22 +60,28 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       setState(() {
         _generatedImageUrl = responseData['data'][0]['url'];
       });
-      log (_generatedImageUrl);
+      log(_generatedImageUrl);
     } else {
       // Handle API error
-      log ('Error generating image: ${response.reasonPhrase}');
+      log('Error generating image: ${response.reasonPhrase}');
     }
   }
-  void trimResult(){
+
+  void trimResult() {
     int idx = chatGptAnswer.indexOf("Itinerary");
-    parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx).trim()];
+    parts = [
+      chatGptAnswer.substring(0, idx).trim(),
+      chatGptAnswer.substring(idx).trim()
+    ];
   }
+
   Future<void> _waitForRequestDetails() async {
-     requestWait = await _getRequestDetails();
+    requestWait = await _getRequestDetails();
   }
-  Future<void> waitingForResult(String msg) async{
-    for(int i=0;i<3;i++) {
-      if(msg.isNotEmpty) {
+
+  Future<void> waitingForResult(String msg) async {
+    for (int i = 0; i < 3; i++) {
+      if (msg.isNotEmpty) {
         await chatGPTAPI(msg);
       }
       if (chatGptAnswer.isNotEmpty) {
@@ -85,7 +91,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         await generateImage();
         resultList.add(Result(_generatedImageUrl, parts[1], parts[0]));
         numberOfGeneratedResults++;
-        if(msgGlobal.contains("Except")) {
+        if (msgGlobal.contains("Except")) {
           msgGlobal = "$msgGlobal, ${parts[0]}";
         }
         else {
@@ -94,20 +100,22 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       }
     }
   }
-  Widget _countryAndCityText(){
+
+  Widget _countryAndCityText() {
     return DefaultTextStyle(
       style: const TextStyle(
           fontSize: 30.0,
           color: Colors.black87
       ),
       child: AnimatedTextKit(
-        animatedTexts : [
+        animatedTexts: [
           TyperAnimatedText(parts[0]),
         ],
         isRepeatingAnimation: false,
       ),
     );
   }
+
   final List<Map<String, String>> messages = [];
   String openAiKey = API_KEY;
 
@@ -141,24 +149,26 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         chatGptAnswer = content;
         print(chatGptAnswer);
       }
-      log ('An internal error occurred');
+      log('An internal error occurred');
     } catch (e) {
-      log (e.toString());
+      log(e.toString());
     }
   }
-  void _createResult(int index) async{
-      var uuid = const Uuid().v1();
-      DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
-      resultKey = uuid;
-      await ref.set({
-        "image": resultList[index].image,
-        "itinerary": resultList[index].itinerary,
-        "cityAndCountry": resultList[index].cityAndCountry,
-        "likes": resultList[index].numberOfLikes,
-        "requestId": globalRequest.key
-      });
+
+  void _createResult(int index) async {
+    var uuid = const Uuid().v1();
+    DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
+    resultKey = uuid;
+    await ref.set({
+      "image": resultList[index].image,
+      "itinerary": resultList[index].itinerary,
+      "cityAndCountry": resultList[index].cityAndCountry,
+      "likes": resultList[index].numberOfLikes,
+      "requestId": globalRequest.key
+    });
   }
-  void _updateResult() async{
+
+  void _updateResult() async {
     String? idUpdate = "";
     int numberOfLikes = 0;
     String cityAndCountry = "";
@@ -173,23 +183,44 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       for (var resultLocal in snapshot.children) {
         if (resultLocal
             .key == resultKey) {
-          cityAndCountry = resultLocal.child("cityAndCountry").value.toString();
-          itinerary = resultLocal.child("itinerary").value.toString();
-          requestId = resultLocal.child("requestId").value.toString();
-          image = resultLocal.child("image").value.toString();
-          if(resultLocal.child("likes").value!.toString().contains("0")) {
+          cityAndCountry = resultLocal
+              .child("cityAndCountry")
+              .value
+              .toString();
+          itinerary = resultLocal
+              .child("itinerary")
+              .value
+              .toString();
+          requestId = resultLocal
+              .child("requestId")
+              .value
+              .toString();
+          image = resultLocal
+              .child("image")
+              .value
+              .toString();
+          if (resultLocal
+              .child("likes")
+              .value!
+              .toString()
+              .contains("0")) {
             numberOfLikes = 1;
-
           }
-          else if(resultLocal.child("likes").value!.toString() == "1") {
+          else if (resultLocal
+              .child("likes")
+              .value!
+              .toString() == "1") {
             numberOfLikes = 2;
           }
-          if(resultLocal.child("likes").value!.toString() == "2") {
+          if (resultLocal
+              .child("likes")
+              .value!
+              .toString() == "2") {
             numberOfLikes = 3;
           }
         }
       }
-    }catch (error) {
+    } catch (error) {
       log(error.toString());
     }
     final postData = {
@@ -199,13 +230,85 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       "likes": numberOfLikes,
       "requestId": requestId
     };
-    if(resultKey != "") {
+    if (resultKey != "") {
       updates["result/$resultKey"] = postData;
       return FirebaseDatabase.instance.ref().update(updates);
     }
   }
-  void _updatePlan() async{
-    Plan planLocal = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,"");
+
+  Future<bool> _areResultsAlreadyGenerated() async {
+    //verifies if there are results already generated
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshotResult = await ref.child('result').get();
+      for (var resultLocal in snapshotResult.children) {
+        if (resultLocal
+            .child("requestId")
+            .value!
+            .toString() == globalRequest.key
+        ) {
+          print("ok");
+          Result resultData = Result("", "", "");
+          resultData.itinerary = resultLocal
+              .child("itinerary")
+              .value
+              .toString();
+          resultData.cityAndCountry =
+              resultLocal.child("cityAndCountry").toString();
+          resultData.image = resultLocal.child("image").toString();
+          if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "0") {
+            resultData.numberOfLikes = 0;
+          }
+          else if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "1") {
+            resultData.numberOfLikes = 1;
+          }
+          if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "2") {
+            resultData.numberOfLikes = 2;
+          }
+          if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "3") {
+            resultData.numberOfLikes = 3;
+          }
+          resultList.add(resultData);
+        }
+      }
+    } catch (error) {
+      log("Error at searching ");
+    }
+    if (resultList.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
+
+  void _updatePlan() async {
+    Plan planLocal = Plan(
+        "",
+        "",
+        "",
+        "",
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        "");
     int days = 0;
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
@@ -215,49 +318,93 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planIterator in snapshot.children) {
         if (planIterator
-            .child("userId").value.toString() == userId &&
-        planIterator.child("requestId").value.toString() == globalRequest.key
+            .child("userId")
+            .value
+            .toString() == userId &&
+            planIterator
+                .child("requestId")
+                .value
+                .toString() == globalRequest.key
         ) {
           planLocal.key = planIterator.key!;
-          planLocal.date = planIterator.child("date").value.toString();
-          planLocal.budget = planIterator.child("budget").value.toString();
-          planLocal.town = planIterator.child("departure").value.toString();
-          if(planIterator.child("days").value.toString() == "7") {
+          planLocal.date = planIterator
+              .child("date")
+              .value
+              .toString();
+          planLocal.budget = planIterator
+              .child("budget")
+              .value
+              .toString();
+          planLocal.town = planIterator
+              .child("departure")
+              .value
+              .toString();
+          if (planIterator
+              .child("days")
+              .value
+              .toString() == "7") {
             planLocal.isSeven = true;
             days = 7;
           }
-          else if(planIterator.child("days").value.toString() == "3") {
+          else if (planIterator
+              .child("days")
+              .value
+              .toString() == "3") {
             planLocal.isThree = true;
             days = 3;
           }
-          else if(planIterator.child("days").value.toString() == "10") {
+          else if (planIterator
+              .child("days")
+              .value
+              .toString() == "10") {
             planLocal.isTen = true;
             days = 10;
           }
-          if(planIterator.child("isBeach").value.toString() == "true") {
+          if (planIterator
+              .child("isBeach")
+              .value
+              .toString() == "true") {
             planLocal.isSwimming = true;
           }
-          if(planIterator.child("isHistorical").value.toString() == "true") {
+          if (planIterator
+              .child("isHistorical")
+              .value
+              .toString() == "true") {
             planLocal.isHistoricalHeritage = true;
           }
-          if(planIterator.child("isCity").value.toString() == "true") {
+          if (planIterator
+              .child("isCity")
+              .value
+              .toString() == "true") {
             planLocal.isBigCity = true;
           }
-          if(planIterator.child("isNature").value.toString() == "true") {
+          if (planIterator
+              .child("isNature")
+              .value
+              .toString() == "true") {
             planLocal.isNature = true;
           }
-          if(planIterator.child("isSki").value.toString() == "true") {
+          if (planIterator
+              .child("isSki")
+              .value
+              .toString() == "true") {
             planLocal.isSkiing = true;
           }
-          if(planIterator.child("isTropical").value.toString() == "true") {
+          if (planIterator
+              .child("isTropical")
+              .value
+              .toString() == "true") {
             planLocal.isTropical = true;
           }
-          if(planIterator.child("isShopping").value.toString() == "true") {
+          if (planIterator
+              .child("isShopping")
+              .value
+              .toString() == "true") {
             planLocal.isShopping = true;
           }
         }
       }
-    }catch (error) {
+    } catch (error) {
       log(error.toString());
     }
     final postData = {
@@ -277,16 +424,16 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       "requestId": globalRequest.key,
       "voted": "yes"
     };
-    if(planLocal.key != "") {
+    if (planLocal.key != "") {
       updates["plan/${planLocal.key}"] = postData;
       return FirebaseDatabase.instance.ref().update(updates);
     }
   }
+
   Widget closeButton() {
     return TextButton(
       onPressed: () {
-        setState(() {
-        });
+        setState(() {});
       },
 
       style: ElevatedButton.styleFrom(
@@ -305,11 +452,12 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       ),
     );
   }
+
   Widget heartButton() {
     return TextButton(
       onPressed: () {
         setState(() {
-          
+
         });
       },
 
@@ -329,170 +477,195 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
-    _getRequestDetails();
-    msgGlobal = getMessage();
-      if (resultDisplayed == false) {
-        resultDisplayed = true;
-        waitingForResult(msgGlobal);
-    //     print("da");
-       }
-     if (numberOfGeneratedResults == 3) {
-       List<Result> resultListLocal = List.empty(growable: true);
-       resultListLocal = resultList;
-       if (swipeNumber != 3) {
-         return Scaffold(
-           appBar: AppBar(
-             title: const Text("My Journey"),
-           ),
-           body: Center(
-             child: Stack(
-               children: resultListLocal.map((card) {
-                 int index = resultListLocal.indexOf(card);
-                 return Dismissible(
-                     key: Key(card.cityAndCountry),
-                     direction: DismissDirection.horizontal,
-                     onDismissed: (direction) {
-                       setState(() {
-                         _createResult(index);
-                         resultListLocal.removeAt(index);
-                         swipeNumber ++;
-                       });
-                       if (direction == DismissDirection.endToStart) {
-                         // Handle left swipe
-                         _updateResult();
-                         print("da");
-                         log("Swiped left on card $index");
-                       } else if (direction == DismissDirection.startToEnd) {
-                         // Handle right swipe
-                         log("Swiped right on card $index");
-                       }
-                     },
-                     background: Container(
-                       color: Colors.red,
-                       alignment: Alignment.center,
-                       child: const Icon(Icons.thumb_down, color: Colors.white),
-                     ),
-                     secondaryBackground: Container(
-                       color: Colors.green,
-                       alignment: Alignment.center,
-                       child: const Icon(Icons.thumb_up, color: Colors.white),
-                     ),
-                     child: Card(
-                       child: Container(
-                         padding: const EdgeInsets.all(20),
-                         child: Column(
-                           mainAxisAlignment: MainAxisAlignment.center,
-                           children: [
-                             Expanded(child:
-                             Column(
-                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                 mainAxisAlignment: MainAxisAlignment.center,
-                                 children: [
-                                   Center(
-                                     child: Image.network(
-                                         resultListLocal[index].image),
-                                   ),
-                                   Center(
-                                     child: Text(
-                                       card.cityAndCountry,
-                                       style: const TextStyle(fontSize: 30.0),
-                                     ),
-                                   ),
-                                 ]
-                             ),
-                             ),
-                             Row(
-                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                 mainAxisAlignment: MainAxisAlignment.center,
-                                 children: [
-                                   TextButton(
-                                     onPressed: () {
-                                       setState(() {
-
-                                       });
-                                     },
-
-                                     style: ElevatedButton.styleFrom(
-                                         backgroundColor: Colors.white
-                                     ),
-                                     child: const Row(
-                                       crossAxisAlignment: CrossAxisAlignment
-                                           .center,
-                                       mainAxisAlignment: MainAxisAlignment.end,
-                                       children: [
-                                         Icon(
-                                           Icons.favorite,
-                                           size: 30.0,
-                                           color: Colors.red,
-                                         ),
-                                       ],
-                                     ),
-                                   ),
-                                   const SizedBox(width: 20),
-                                   closeButton(),
-                                 ]
-                             )
-                           ],
-                         ),
-                       ),
-                     )
-                 );
-               }).toList(),
-             ),
-           ),
-         );
-       }
-       else {
-         _updatePlan();
-         return Scaffold(
-             appBar: AppBar(
-               title: const Text("My Journey"),
-             ),
-             body: Center(
-                 child: AlertDialog(
-                   title: const Text(
-                       'Your preferences are saved'),
-                   content: const Text(
-                       'After your friends will complete the request, you will receive a notification'),
-                   actions: <Widget>[
-                     TextButton(
-                       onPressed: () =>
-                           setState(() {
-                             Navigator.push(
-                                 context,
-                                 MaterialPageRoute(
-                                     builder: (context) =>
-                                     const HomePage()));
-                           }
-                           ),
-                       child: const Text('Continue'),
-                     ),
-                   ],
-                 )
-             )
-         );
-       }
-     }
-     else{
-      return  Scaffold(
+    if (swipeNumber != 3) {
+      return Scaffold(
           appBar: AppBar(
             title: const Text("My Journey"),
           ),
-          body: const Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  SpinKitCircle(
-                    color: Colors.grey,
-                    size: 90.0,
-                  )
-                ]
-            ),
-          ));
-     }
+          body: Center(
+              child: FutureBuilder<bool>(
+                  future: _areResultsAlreadyGenerated(),
+                  // a previously-obtained Future<String> or null
+                  builder: (BuildContext context,
+                      AsyncSnapshot<bool> snapshot) {
+                    if (snapshot.hasData) {
+                      numberOfGeneratedResults = 3;
+                    }
+                    else {
+                      if (resultDisplayed == false) {
+                        resultDisplayed = true;
+                        _getRequestDetails();
+                        msgGlobal = getMessage();
+                       waitingForResult(msgGlobal);
+                      }
+                    }
+                    if (numberOfGeneratedResults == 3) {
+                      List<Result> resultListLocal = List.empty(growable: true);
+                      resultListLocal = resultList;
+                      return Center (
+                          child:Stack(
+                        children: resultListLocal.map((card) {
+                          int index = resultListLocal.indexOf(card);
+                          return Dismissible(
+                              key: Key('card_$index'),
+                              direction: DismissDirection.horizontal,
+                              onDismissed: (direction) {
+                                setState(() {
+                                  _createResult(index);
+                                  resultListLocal.removeAt(index);
+                                  swipeNumber ++;
+                                });
+                                if (direction ==
+                                    DismissDirection.endToStart) {
+                                  // Handle left swipe
+                                  _updateResult();
+                                  log("Swiped left on card $index");
+                                } else if (direction ==
+                                    DismissDirection.startToEnd) {
+                                  // Handle right swipe
+                                  log("Swiped right on card $index");
+                                }
+                              },
+                              background: Container(
+                                color: Colors.red,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                    Icons.thumb_down, color: Colors.white),
+                              ),
+                              secondaryBackground: Container(
+                                color: Colors.green,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                    Icons.thumb_up, color: Colors.white),
+                              ),
+                              child: Card(
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .center,
+                                    children: [
+                                      Expanded(child:
+                                      Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .center,
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .center,
+                                          children: [
+                                            Center(
+                                              child: Image.network(
+                                                  resultListLocal[index]
+                                                      .image),
+                                            ),
+                                            Center(
+                                              child: Text(
+                                                card.cityAndCountry,
+                                                style: const TextStyle(
+                                                    fontSize: 30.0),
+                                              ),
+                                            ),
+                                          ]
+                                      ),
+                                      ),
+                                      Row(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .center,
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .center,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+
+                                                });
+                                              },
+
+                                              style: ElevatedButton
+                                                  .styleFrom(
+                                                  backgroundColor: Colors
+                                                      .white
+                                              ),
+                                              child: const Row(
+                                                crossAxisAlignment: CrossAxisAlignment
+                                                    .center,
+                                                mainAxisAlignment: MainAxisAlignment
+                                                    .end,
+                                                children: [
+                                                  Icon(
+                                                    Icons.favorite,
+                                                    size: 30.0,
+                                                    color: Colors.red,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 20),
+                                            closeButton(),
+                                          ]
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              )
+                          );
+                        }).toList(),
+                      )
+                      );
+                    }
+                    else {
+                      return Scaffold(
+                          appBar: AppBar(
+                            title: const Text("My Journey"),
+                          ),
+                          body: const Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceEvenly,
+                                children: <Widget>[
+                                  SpinKitCircle(
+                                    color: Colors.grey,
+                                    size: 90.0,
+                                  )
+                                ]
+                            ),
+                          ));
+                    }
+                  }
+              )
+          )
+      );
+    }
+    else {
+      _updatePlan();
+      return Scaffold(
+          body: Center(
+              child: AlertDialog(
+                title: const Text(
+                    'Your preferences are saved'),
+                content: const Text(
+                    'After your friends will complete the request, you will receive a notification'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () =>
+                        setState(() {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                  const HomePage()));
+                        }
+                        ),
+                    child: const Text('Continue'),
+                  ),
+                ],
+              )
+          )
+      );
+    }
   }
 
   Future<List<Request>> _getRequestDetails() async {
