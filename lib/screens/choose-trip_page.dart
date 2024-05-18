@@ -351,7 +351,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
                children: resultListLocal.map((card) {
                  int index = resultListLocal.indexOf(card);
                  return Dismissible(
-                     key: Key(card.cityAndCountry),
+                     key: Key('card_$index'),
                      direction: DismissDirection.horizontal,
                      onDismissed: (direction) {
                        setState(() {
@@ -362,7 +362,6 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
                        if (direction == DismissDirection.endToStart) {
                          // Handle left swipe
                          _updateResult();
-                         print("da");
                          log("Swiped left on card $index");
                        } else if (direction == DismissDirection.startToEnd) {
                          // Handle right swipe

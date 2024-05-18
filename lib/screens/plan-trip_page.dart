@@ -78,8 +78,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
   Widget _animatedText() {
     return const DefaultTextStyle(
       style: TextStyle(
-          fontSize: 40.0,
-          color: Colors.black26
+          fontSize: 25.0,
+          color: Colors.black
       ),
       child: Text('Complete your trip details'),
     );
@@ -93,7 +93,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
     return DefaultTextStyle(
       style: const TextStyle(
           fontSize: 20.0,
-          color: Colors.black26
+          color: Colors.black
       ),
       child: Text(text),
     );
@@ -105,7 +105,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
       keyboardType: TextInputType.number,
       controller: controller,
       decoration: InputDecoration(
-          labelText: title
+          labelText: title,
+        labelStyle: const TextStyle(fontSize: 20.0 , color: Colors.black, fontStyle: FontStyle.normal)
       ),
     );
   }
@@ -115,7 +116,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
-          labelText: title
+          labelText: title,
+          labelStyle: const TextStyle(fontSize: 20.0 , color: Colors.black, fontStyle: FontStyle.normal)
       ),
     );
   }
@@ -272,7 +274,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
               }
             }
             ),
-        child: const Text('Continue')
+        child: _text("Continue")
     );
   }
   void scrollListToEND() {
@@ -661,19 +663,21 @@ class _PlanTripPageState extends State<PlanTripPage> {
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
-        child: ListView(
+        child: Expanded(
+          child:Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            _animatedText(),
-            const SizedBox(height: 20),
-            _entryFieldNumber("Your budget", budgetController),
-            const SizedBox(height: 20),
-            _entryFieldText("Place of departure", departureController),
-            const SizedBox(height: 30),
+            Expanded(child: _animatedText()),
+        Expanded(child: _entryFieldNumber("Your budget", budgetController)),
+        Expanded(child:_entryFieldText("Place of departure", departureController)),
+            const SizedBox(height: 35),
             _dateButton(),
-            const SizedBox(height: 20),
-            _text('What would you like?'),
-            const SizedBox(height: 20),
+            const SizedBox(height: 35),
+        Expanded(child: _text('What would you like?')),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 _beachButton(),
                 _mountainButton(),
@@ -681,22 +685,28 @@ class _PlanTripPageState extends State<PlanTripPage> {
               ],
             ),
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             _attractionsButton(),
             _natureButton(),
             ],
         ),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 _tropicalButton(),
                 _shoppingButton(),
               ],
             ),
-            const SizedBox(height: 20),
-            _text("How many days?"),
-            const SizedBox(height: 20),
+            const SizedBox(height: 35),
+        Expanded(child:_text("How many days?")),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
+
                 _threeButton(),
                 _sevenButton(),
                 _tenButton(),
@@ -711,6 +721,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
           ],
         ),
       ),
+    )
     );
   }
 

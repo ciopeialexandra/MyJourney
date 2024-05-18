@@ -4,11 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/auth.dart';
-import 'package:myjorurney/navigate.dart';
 import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
+import 'package:rive/rive.dart';
 import '../data/globals.dart';
 import 'add-friend_page.dart';
 import 'choose-trip_page.dart';
@@ -25,6 +25,12 @@ class _HomePageState extends State<HomePage> {
   final User? user = Auth().currentUser;
   int notificationNumber = 0;
   int numberOfRequests = 0;
+  List<SMIBool> riveIconInputs = [];
+  List<StateMachineController?> controllers = [];
+  int selctedNavIndex = 0;
+  List<String> pages = ["Chat", "Search", "History", "Notification", "Profile"];
+  static const Color bottonNavBgColor = Color(0xFF17203A);
+
 
   Future<void> signOut() async {
     await Auth().signOut();
@@ -79,7 +85,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } catch (error) {
-      log("Error at searching requests");
+      log(error.toString());
     }
     return notificationNumber;
   }
@@ -91,41 +97,59 @@ class _HomePageState extends State<HomePage> {
     int requestParticipants = 0;
     int requestDetailsCompletedNumber = 0;
     try {
-          DataSnapshot snapshotPlan = await ref.child('plan').get();
+      DataSnapshot snapshotPlan = await ref.child('plan').get();
+      for (var planLocal in snapshotPlan.children) {
+        if (planLocal
+            .child("userId")
+            .value!
+            .toString() == user?.uid && planLocal
+            .child("budget")
+            .value
+            .toString()
+            .isNotEmpty &&
+            planLocal
+                .child("voted")
+                .value!
+                .toString() == "no"
+        ) {
+          globalRequest.key = planLocal
+              .child("requestId")
+              .value
+              .toString();
+          requestParticipants = 0;
           for (var planLocal in snapshotPlan.children) {
             if (planLocal
-                    .child("userId")
-                    .value!
-                    .toString() == user?.uid && planLocal.child("budget").value.toString().isNotEmpty &&
-                planLocal.child("voted").value!.toString()=="no"
+                .child("requestId")
+                .value!
+                .toString() == globalRequest.key && planLocal
+                .child("budget")
+                .value
+                .toString()
+                .isEmpty
             ) {
-              globalRequest.key = planLocal.child("requestId").value.toString();
-              requestParticipants = 0;
-              for (var planLocal in snapshotPlan.children) {
-                if (planLocal
-                    .child("requestId")
-                    .value!
-                    .toString() == globalRequest.key && planLocal.child("budget").value.toString().isEmpty
-                ) {
-                  return 0;
-                }
-                else if(planLocal
-                    .child("requestId")
-                    .value!
-                    .toString() == globalRequest.key && planLocal.child("budget").value.toString().isNotEmpty){
-                  requestParticipants++;
-                }
-              }
-              if(requestParticipants > 1) {
-                requestDetailsCompletedNumber++;
-              }
-              }
+              return 0;
             }
+            else if (planLocal
+                .child("requestId")
+                .value!
+                .toString() == globalRequest.key && planLocal
+                .child("budget")
+                .value
+                .toString()
+                .isNotEmpty) {
+              requestParticipants++;
+            }
+          }
+          if (requestParticipants > 1) {
+            requestDetailsCompletedNumber++;
+          }
+        }
+      }
     } catch (error) {
       log("Error at searching requests");
     }
     numberOfRequests = requestDetailsCompletedNumber;
-    if(requestDetailsCompletedNumber > 0) {
+    if (requestDetailsCompletedNumber > 0) {
       return requestDetailsCompletedNumber;
     }
     return 0;
@@ -279,10 +303,37 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void riveOnInIt(Artboard artboard, {required String stateMachineName}) {
+    StateMachineController? controller =
+    StateMachineController.fromArtboard(artboard, stateMachineName);
+
+    artboard.addController(controller!);
+    controllers.add(controller);
+
+    riveIconInputs.add(controller.findInput<bool>('active') as SMIBool);
+  }
+
+  void animateTheIcon(int index) {
+    riveIconInputs[index].change(true);
+    Future.delayed(
+      const Duration(seconds: 1),
+          () {
+        riveIconInputs[index].change(false);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    for (var controller in controllers) {
+      controller?.dispose();
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: NavMenu(),
       appBar: AppBar(
         title: _title(),
         actions: [
@@ -310,9 +361,9 @@ class _HomePageState extends State<HomePage> {
               future: _areRequestDetailsCompleted(),
               // a previously-obtained Future<String> or null
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                if (snapshot.hasData&& numberOfRequests >0) {
-                   return Container(
-                   child:  _requestAlert()
+                if (snapshot.hasData && numberOfRequests > 0) {
+                  return Container(
+                      child: _requestAlert()
                   );
                 }
                 return const Text("");
@@ -337,6 +388,21 @@ class _HomePageState extends State<HomePage> {
                       uS: Colors.purple,
                       cN: Colors.pink,
                       iN: Colors.purple,
+                      bF: Colors.yellowAccent,
+                      aR: Colors.blueAccent,
+                      nA: Colors.red,
+                      bL: Colors.orange,
+                      aO: Colors.orange,
+                      aL: Colors.white,
+                      rO: Colors.red,
+                      rU: Colors.green,
+                      aU: Colors.yellow,
+                      aN: Colors.red,
+                      eG: Colors.cyanAccent,
+                      lI: Colors.red,
+                      cA: Colors.blue,
+                      tN: Colors.pinkAccent,
+                      mA: Colors.lightGreen
                     ).toMap(),
                     callback: (id, name, tapDetails) {
                       log(id);
@@ -350,10 +416,40 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _beenButton(),
               _planButton()
             ],
           )
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
+          setState(() {
+            // currentPageIndex = index;
+          });
+        },
+        indicatorColor: Colors.amber,
+        //selectedIndex: currentPageIndex,
+        destinations:  <Widget>[
+          const NavigationDestination(
+            selectedIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          const NavigationDestination(
+            icon:  Icon(Icons.airplanemode_active_sharp),
+            label: 'Plan',
+          ),
+          NavigationDestination(
+            icon: Badge(
+              label: Text(notificationNumber.toString()),
+              child: const Icon(Icons.notifications_sharp),
+            ),
+            label: 'Notifications',
+          ),
+          const NavigationDestination(
+            icon:  Icon(Icons.favorite_sharp),
+            label: 'Favourites',
+          ),
         ],
       ),
     );

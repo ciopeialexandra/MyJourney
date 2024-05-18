@@ -245,8 +245,13 @@ class _ChatScreenState extends State<ChatScreen> {
                           children: [
                             Image.network(_generatedImageUrl),
                             const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                itineraryButton(),
                             _countryAndCityText(),
-                            itineraryButton(),
+                            ],
+                            )
                             //Text(parts[1]),
                           ]
                       )
@@ -265,13 +270,15 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
     else {
-      return const Scaffold(
-          body: Padding(
+      return  Scaffold(
+          appBar: AppBar(
+            title: _title(),
+          ),
+          body: const Padding(
             padding: EdgeInsets.all(20.0),
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Text("Waiting for the results",),
                   SpinKitCircle(
                     color: Colors.grey,
                     size: 70.0,
