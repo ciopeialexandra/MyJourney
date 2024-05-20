@@ -243,24 +243,24 @@ class _PlanTripPageState extends State<PlanTripPage> {
               if(isPlanRequest == true && isFriendsTrip==false){
                 _updatePlan();
                 waitVerifyRequestFinished();
-                if(isRequestFinished) {
-                  resultUpdated = false;
-                 _updateRequest();
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return requestFinished(context);
-                      }
-                  );
-                }
-                else{
+                // if(isRequestFinished) {
+                //   resultUpdated = false;
+                //  _updateRequest();
+                //   showDialog(
+                //       context: context,
+                //       builder: (BuildContext context) {
+                //         return requestFinished(context);
+                //       }
+                //   );
+                // }
+                // else{
                   showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return requestPending(context);
                       }
                   );
-                }
+                //}
               }
               else if(isFriendsTrip == true){
                 _createPlan();
@@ -669,12 +669,12 @@ class _PlanTripPageState extends State<PlanTripPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Expanded(child: _animatedText()),
-        Expanded(child: _entryFieldNumber("Your budget", budgetController)),
-        Expanded(child:_entryFieldText("Place of departure", departureController)),
+            Expanded(child: _entryFieldNumber("Your budget", budgetController)),
+            Expanded(child:_entryFieldText("Place of departure", departureController)),
             const SizedBox(height: 35),
             _dateButton(),
             const SizedBox(height: 35),
-        Expanded(child: _text('What would you like?')),
+            Expanded(child: _text('What would you like?')),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,

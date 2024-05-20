@@ -4,8 +4,9 @@ class Result {
   String itinerary = "";
   String cityAndCountry = "";
   int numberOfLikes = 0;
+  String key = "";
 
-  Result(this.image, this.itinerary, this.cityAndCountry);
+  Result(this.image, this.itinerary, this.cityAndCountry,this.key);
 
   void setResultImage(String image) {
     this.image = image;

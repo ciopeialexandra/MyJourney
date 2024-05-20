@@ -8,7 +8,6 @@ import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import 'package:rive/rive.dart';
 import '../data/globals.dart';
 import 'add-friend_page.dart';
 import 'choose-trip_page.dart';
@@ -25,13 +24,37 @@ class _HomePageState extends State<HomePage> {
   final User? user = Auth().currentUser;
   int notificationNumber = 0;
   int numberOfRequests = 0;
-  List<SMIBool> riveIconInputs = [];
-  List<StateMachineController?> controllers = [];
   int selctedNavIndex = 0;
   List<String> pages = ["Chat", "Search", "History", "Notification", "Profile"];
   static const Color bottonNavBgColor = Color(0xFF17203A);
+  late Future<bool> areResultsGeneratedFuture;
 
+  @override
+  void initState() {
+    super.initState();
+    areResultsGeneratedFuture = _areResultsAlreadyGenerated();
+  }
+  Future<bool> _areResultsAlreadyGenerated() async {
+    //verifies if there are results already generated
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshotResult = await ref.child('result').get();
+      for (var resultLocal in snapshotResult.children) {
+        print(globalRequest.key);
+        if (resultLocal
+            .child("requestId")
+            .value!
+            .toString() == globalRequest.key
+        ) {
+          return true;
+        }
+      }
 
+    } catch (error) {
+      log("Error at searching ");
+    }
+    return false;
+  }
   Future<void> signOut() async {
     await Auth().signOut();
   }
@@ -116,6 +139,7 @@ class _HomePageState extends State<HomePage> {
               .child("requestId")
               .value
               .toString();
+           areResultsGeneratedGlobal = await _areResultsAlreadyGenerated();
           requestParticipants = 0;
           for (var planLocal in snapshotPlan.children) {
             if (planLocal
@@ -303,33 +327,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void riveOnInIt(Artboard artboard, {required String stateMachineName}) {
-    StateMachineController? controller =
-    StateMachineController.fromArtboard(artboard, stateMachineName);
-
-    artboard.addController(controller!);
-    controllers.add(controller);
-
-    riveIconInputs.add(controller.findInput<bool>('active') as SMIBool);
-  }
-
-  void animateTheIcon(int index) {
-    riveIconInputs[index].change(true);
-    Future.delayed(
-      const Duration(seconds: 1),
-          () {
-        riveIconInputs[index].change(false);
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    for (var controller in controllers) {
-      controller?.dispose();
-    }
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

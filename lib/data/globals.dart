@@ -12,4 +12,5 @@ bool isFriendsTrip = false;
 bool isPlanRequest = false;
 int requestIndex = -1;
 bool requestUpdateNeeded = false;
+bool areResultsGeneratedGlobal = false;
 Request globalRequest = Request("", List.empty(growable: true), List.empty(growable: true), List.empty(growable: true));

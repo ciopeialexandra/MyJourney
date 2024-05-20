@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:myjorurney/screens/home_page.dart';
@@ -25,6 +26,7 @@ class ChooseTripPage extends StatefulWidget {
 
 class _ChooseTripPageState extends State<ChooseTripPage> {
   List<Result> resultList = List.empty(growable: true);
+  List<Result> resultListCopy = List.empty(growable: true);
   bool resultDisplayed = false;
   String img = "";
   String _generatedImageUrl = '';
@@ -32,9 +34,36 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   late List parts;
   List<Request> requestWait = List.empty(growable: true);
   String msgGlobal = "";
-  int numberOfGeneratedResults = 0;
+  late Future<bool> areRequestDetailsGenerated ;
+  late Future<bool> areRequestResultsGenerated ;
   int swipeNumber = 0;
   String resultKey = "";
+  late Future<bool> areResultsGeneratedFuture;
+  late Future<void> areResultsCreated;
+  late Future<bool> isRequestCompleted;
+  late Future<void> waitPlanUpdate;
+  int indexGlobal = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    areResultsGeneratedFuture = _areResultsAlreadyGenerated();
+    if(areResultsGeneratedGlobal == false) {
+      areRequestDetailsGenerated = _getRequestDetails();
+      areRequestDetailsGenerated.then((result) {
+        setState(() {
+          areRequestResultsGenerated = waitingForResult(msgGlobal);
+        });
+      });
+    }
+    else {
+      waitPlanUpdate = _updatePlan();
+      waitPlanUpdate.then((value){
+        isRequestCompleted = _getRequestStatus();
+      });
+    }
+  }
+
 
   Future<void> generateImage() async {
     final String apiKey = API_KEY;
@@ -66,16 +95,68 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       log ('Error generating image: ${response.reasonPhrase}');
     }
   }
+  Future<bool> _areResultsAlreadyGenerated() async {
+    //verifies if there are results already generated
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshotResult = await ref.child('result').get();
+      for (var resultLocal in snapshotResult.children) {
+        if (resultLocal
+            .child("requestId")
+            .value!
+            .toString() == globalRequest.key
+        ) {
+          Result resultData = Result("", "", ""," ");
+          resultData.key = resultLocal.key.toString();
+          resultData.itinerary = resultLocal
+              .child("itinerary")
+              .value
+              .toString();
+          resultData.cityAndCountry = resultLocal.child("cityAndCountry").value.toString();
+          resultData.image = resultLocal.child("image").value.toString();
+          if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "0") {
+            resultData.numberOfLikes = 0;
+          }
+          else if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "1") {
+            resultData.numberOfLikes = 1;
+          }
+          if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "2") {
+            resultData.numberOfLikes = 2;
+          }
+          if (resultLocal
+              .child("likes")
+              .value
+              .toString() == "3") {
+            resultData.numberOfLikes = 3;
+          }
+          resultList.add(resultData);
+        }
+      }
+    } catch (error) {
+      log("Error at searching ");
+    }
+    if (resultList.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
+
   void trimResult(){
     int idx = chatGptAnswer.indexOf("Itinerary");
     parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx).trim()];
   }
-  Future<void> _waitForRequestDetails() async {
-     requestWait = await _getRequestDetails();
-  }
-  Future<void> waitingForResult(String msg) async{
+  Future<bool> waitingForResult(String msg) async{
     for(int i=0;i<3;i++) {
-      if(msg.isNotEmpty) {
+      if (msg.isNotEmpty) {
         await chatGPTAPI(msg);
       }
       if (chatGptAnswer.isNotEmpty) {
@@ -83,9 +164,9 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         img =
         "A realistic picture portraying a trip to ${parts[0]} ";
         await generateImage();
-        resultList.add(Result(_generatedImageUrl, parts[1], parts[0]));
-        numberOfGeneratedResults++;
-        if(msgGlobal.contains("Except")) {
+        resultList.add(Result(_generatedImageUrl, parts[1], parts[0],resultKey));
+        resultListCopy.add(Result(_generatedImageUrl, parts[1], parts[0],resultKey));
+        if (msgGlobal.contains("Except")) {
           msgGlobal = "$msgGlobal, ${parts[0]}";
         }
         else {
@@ -93,20 +174,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         }
       }
     }
-  }
-  Widget _countryAndCityText(){
-    return DefaultTextStyle(
-      style: const TextStyle(
-          fontSize: 30.0,
-          color: Colors.black87
-      ),
-      child: AnimatedTextKit(
-        animatedTexts : [
-          TyperAnimatedText(parts[0]),
-        ],
-        isRepeatingAnimation: false,
-      ),
-    );
+    return true;
   }
   final List<Map<String, String>> messages = [];
   String openAiKey = API_KEY;
@@ -146,26 +214,27 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       log (e.toString());
     }
   }
-  void _createResult(int index) async{
+  Future<void> _createResult(Result result) async{
       var uuid = const Uuid().v1();
       DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
       resultKey = uuid;
       await ref.set({
-        "image": resultList[index].image,
-        "itinerary": resultList[index].itinerary,
-        "cityAndCountry": resultList[index].cityAndCountry,
-        "likes": resultList[index].numberOfLikes,
+        "image": result.image,
+        "itinerary": result.itinerary,
+        "cityAndCountry": result.cityAndCountry,
+        "likes": result.numberOfLikes,
         "requestId": globalRequest.key
       });
   }
   void _updateResult() async{
-    String? idUpdate = "";
+    // if(areResultsGeneratedGlobal){
+    //   resultKey = resultKeyParam;
+    // }
     int numberOfLikes = 0;
     String cityAndCountry = "";
     String itinerary = "";
     String requestId = "";
     String image = "";
-
     final Map<String, Map> updates = {};
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     try {
@@ -189,6 +258,21 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           }
         }
       }
+      if(cityAndCountry.isEmpty){
+        cityAndCountry = resultList[indexGlobal].cityAndCountry;
+        itinerary = resultList[indexGlobal].itinerary;
+        requestId = globalRequest.key;
+        image = resultList[indexGlobal].image;
+        if(resultList[indexGlobal].numberOfLikes == 0) {
+          numberOfLikes = 1;
+        }
+        else if(resultList[indexGlobal].numberOfLikes == 1) {
+          numberOfLikes = 2;
+        }
+        if(resultList[indexGlobal].numberOfLikes == 2) {
+          numberOfLikes = 3;
+        }
+      }
     }catch (error) {
       log(error.toString());
     }
@@ -204,7 +288,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       return FirebaseDatabase.instance.ref().update(updates);
     }
   }
-  void _updatePlan() async{
+  Future<void> _updatePlan() async{
     Plan planLocal = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,"");
     int days = 0;
     User? user = FirebaseAuth.instance.currentUser;
@@ -329,172 +413,439 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       ),
     );
   }
+  void _updateRequest() async{
+    final postData = {
+      "status": "completed"
+    };
+    final Map<String, Map> updates = {};
+    String key = globalRequest.key;
+    updates["request/$key"] = postData;
+    return FirebaseDatabase.instance.ref().update(updates);
+  }
   @override
   Widget build(BuildContext context) {
-    _getRequestDetails();
-    msgGlobal = getMessage();
-      if (resultDisplayed == false) {
-        resultDisplayed = true;
-        waitingForResult(msgGlobal);
-    //     print("da");
-       }
-     if (numberOfGeneratedResults == 3) {
-       List<Result> resultListLocal = List.empty(growable: true);
-       resultListLocal = resultList;
-       if (swipeNumber != 3) {
-         return Scaffold(
-           appBar: AppBar(
-             title: const Text("My Journey"),
-           ),
-           body: Center(
-             child: Stack(
-               children: resultListLocal.map((card) {
-                 int index = resultListLocal.indexOf(card);
-                 return Dismissible(
-                     key: Key('card_$index'),
-                     direction: DismissDirection.horizontal,
-                     onDismissed: (direction) {
-                       setState(() {
-                         _createResult(index);
-                         resultListLocal.removeAt(index);
-                         swipeNumber ++;
-                       });
-                       if (direction == DismissDirection.endToStart) {
-                         // Handle left swipe
-                         _updateResult();
-                         log("Swiped left on card $index");
-                       } else if (direction == DismissDirection.startToEnd) {
-                         // Handle right swipe
-                         log("Swiped right on card $index");
-                       }
-                     },
-                     background: Container(
-                       color: Colors.red,
-                       alignment: Alignment.center,
-                       child: const Icon(Icons.thumb_down, color: Colors.white),
-                     ),
-                     secondaryBackground: Container(
-                       color: Colors.green,
-                       alignment: Alignment.center,
-                       child: const Icon(Icons.thumb_up, color: Colors.white),
-                     ),
-                     child: Card(
-                       child: Container(
-                         padding: const EdgeInsets.all(20),
-                         child: Column(
-                           mainAxisAlignment: MainAxisAlignment.center,
-                           children: [
-                             Expanded(child:
-                             Column(
-                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                 mainAxisAlignment: MainAxisAlignment.center,
-                                 children: [
-                                   Center(
-                                     child: Image.network(
-                                         resultListLocal[index].image),
-                                   ),
-                                   Center(
-                                     child: Text(
-                                       card.cityAndCountry,
-                                       style: const TextStyle(fontSize: 30.0),
-                                     ),
-                                   ),
-                                 ]
-                             ),
-                             ),
-                             Row(
-                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                 mainAxisAlignment: MainAxisAlignment.center,
-                                 children: [
-                                   TextButton(
-                                     onPressed: () {
-                                       setState(() {
-
-                                       });
-                                     },
-
-                                     style: ElevatedButton.styleFrom(
-                                         backgroundColor: Colors.white
-                                     ),
-                                     child: const Row(
-                                       crossAxisAlignment: CrossAxisAlignment
-                                           .center,
-                                       mainAxisAlignment: MainAxisAlignment.end,
-                                       children: [
-                                         Icon(
-                                           Icons.favorite,
-                                           size: 30.0,
-                                           color: Colors.red,
-                                         ),
-                                       ],
-                                     ),
-                                   ),
-                                   const SizedBox(width: 20),
-                                   closeButton(),
-                                 ]
-                             )
-                           ],
-                         ),
-                       ),
-                     )
-                 );
-               }).toList(),
-             ),
-           ),
-         );
-       }
-       else {
-         _updatePlan();
-         return Scaffold(
-             appBar: AppBar(
-               title: const Text("My Journey"),
-             ),
-             body: Center(
-                 child: AlertDialog(
-                   title: const Text(
-                       'Your preferences are saved'),
-                   content: const Text(
-                       'After your friends will complete the request, you will receive a notification'),
-                   actions: <Widget>[
-                     TextButton(
-                       onPressed: () =>
-                           setState(() {
-                             Navigator.push(
-                                 context,
-                                 MaterialPageRoute(
-                                     builder: (context) =>
-                                     const HomePage()));
-                           }
-                           ),
-                       child: const Text('Continue'),
-                     ),
-                   ],
-                 )
-             )
-         );
-       }
-     }
-     else{
-      return  Scaffold(
-          appBar: AppBar(
-            title: const Text("My Journey"),
-          ),
-          body: const Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  SpinKitCircle(
-                    color: Colors.grey,
-                    size: 90.0,
-                  )
-                ]
-            ),
-          ));
-     }
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("My Journey"),
+        ),
+        body: Center(
+            child: FutureBuilder<bool>(
+                future: areResultsGeneratedFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if(snapshot.hasData) {
+                    if (snapshot.data == true) {
+                      List<Result> resultListLocal = List.empty(
+                          growable: true);
+                      resultListLocal = resultList;
+                      if (swipeNumber != 3) {
+                        return Stack(
+                            children: resultListLocal.map((card) {
+                              int index = resultListLocal.indexOf(card);
+                              return Dismissible(
+                                  key: Key('card_$index'),
+                                  direction: DismissDirection.horizontal,
+                                  onDismissed: (direction) {
+                                    setState(() {
+                                      resultListLocal.removeAt(index);
+                                      swipeNumber ++;
+                                    });
+                                    if (direction ==
+                                        DismissDirection.endToStart) {
+                                      // Handle left swipe
+                                      _updateResult();
+                                      log("Swiped left on card $index");
+                                    } else if (direction ==
+                                        DismissDirection.startToEnd) {
+                                      // Handle right swipe
+                                      log("Swiped right on card $index");
+                                    }
+                                  },
+                                  background: Container(
+                                    color: Colors.red,
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                        Icons.thumb_down,
+                                        color: Colors.white),
+                                  ),
+                                  secondaryBackground: Container(
+                                    color: Colors.green,
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                        Icons.thumb_up, color: Colors.white),
+                                  ),
+                                  child: Card(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .center,
+                                        children: [
+                                          Expanded(child:
+                                          Column(
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .center,
+                                              mainAxisAlignment: MainAxisAlignment
+                                                  .center,
+                                              children: [
+                                                Center(
+                                                  child: Image.network(
+                                                      resultListLocal[index]
+                                                          .image),
+                                                ),
+                                                Center(
+                                                  child: Text(
+                                                    card.cityAndCountry,
+                                                    style: const TextStyle(
+                                                        fontSize: 30.0),
+                                                  ),
+                                                ),
+                                              ]
+                                          ),
+                                          ),
+                                          Row(
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .center,
+                                              mainAxisAlignment: MainAxisAlignment
+                                                  .center,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                    });
+                                                  },
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                      backgroundColor: Colors
+                                                          .white
+                                                  ),
+                                                  child: const Row(
+                                                    crossAxisAlignment: CrossAxisAlignment
+                                                        .center,
+                                                    mainAxisAlignment: MainAxisAlignment
+                                                        .end,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.favorite,
+                                                        size: 30.0,
+                                                        color: Colors.red,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 20),
+                                                closeButton(),
+                                              ]
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                              );
+                            }).toList());
+                      }
+                      else {
+                       return verifyRequestState();
+                      }
+                    } else {
+                      return waitForRequestDetails();
+                    }
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                }
+            )
+        )
+    );
   }
+Widget verifyPlanUpdated() {
+  return Center(
+      child: FutureBuilder<void>(
+          future: waitPlanUpdate,
+          // a previously-obtained Future<String> or null
+          builder: (BuildContext context,
+              AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (snapshot.hasData) {
+              return verifyRequestState();
+            }
+            return const Text("Error at verifyPlanUpdated");
+          }
+      )
+  );
+}
+  Widget verifyRequestState(){
+      return  Center(
+          child:FutureBuilder<bool>(
+              future: isRequestCompleted,
+              // a previously-obtained Future<String> or null
+              builder: (BuildContext context,
+                  AsyncSnapshot<bool> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }else if (snapshot.hasData) {
+                  return AlertDialog(
+                    title: const Text(
+                        'Your preferences are saved'),
+                    content: const Text(
+                        'After your friends will complete the request, you will receive a notification'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () =>
+                            setState(() {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                      const HomePage()));
+                            }
+                            ),
+                        child: const Text('Continue'),
+                      ),
+                    ],
+                  );
+                }
+                return const Text("Request update failed");
+              }
+          )
+      );
+    }
+Widget waitForRequestDetails(){
+    if(msgGlobal.isEmpty) {
+      return FutureBuilder<bool>(
+          future: areRequestDetailsGenerated,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const Center(
+                  child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text(
+                  'Error: ${snapshot.error}'));
+            } else {
+              if (snapshot.data == true) {
+                msgGlobal = getMessage();
+                if (resultDisplayed == false) {
+                  resultDisplayed = true;
+                  return displayTheResult();
+                }
+              }
+            }
+            return const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment
+                        .spaceEvenly,
+                    children: <Widget>[
+                      SpinKitCircle(
+                        color: Colors.grey,
+                        size: 90.0,
+                      )
+                    ]
+                )
+            );
+          }
+      );
+    }
+    else{
+      return displayTheResult();
+    }
+}
+  Widget displayTheResult() {
+      return FutureBuilder<bool>(
+          future: areRequestResultsGenerated,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const Center(
+                  child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text(
+                  'Error: ${snapshot.error}'));
+            } else {
+              if (snapshot.data == true) {
+                  if (swipeNumber != 3) {
+                    return Stack(
+                        children: resultListCopy
+                            .map((card) {
+                          int index = resultListCopy
+                              .indexOf(card);
+                          return Dismissible(
+                              key: UniqueKey(),
+                              direction: DismissDirection
+                                  .horizontal,
+                              onDismissed: (direction) {
+                                final Result result = resultListCopy[index];
+                                setState(() {
+                                  //_createResult(index);
+                                  resultListCopy.removeAt(index);
+                                  swipeNumber ++;
+                                });
+                                _createResult(result);
+                                if (direction ==
+                                    DismissDirection
+                                        .endToStart) {
+                                  // Handle left swipe
+                                  indexGlobal = index;
+                                  _updateResult();
+                                  log(
+                                      "Swiped left on card $index");
+                                } else if (direction ==
+                                    DismissDirection
+                                        .startToEnd) {
+                                  // Handle right swipe
+                                  log(
+                                      "Swiped right on card $index");
+                                }
+                              },
+                              background: Container(
+                                color: Colors.red,
+                                alignment: Alignment
+                                    .center,
+                                child: const Icon(
+                                    Icons.thumb_down,
+                                    color: Colors
+                                        .white),
+                              ),
+                              secondaryBackground: Container(
+                                color: Colors.green,
+                                alignment: Alignment
+                                    .center,
+                                child: const Icon(
+                                    Icons.thumb_up,
+                                    color: Colors
+                                        .white),
+                              ),
+                              child: Card(
+                                child: Container(
+                                  padding: const EdgeInsets
+                                      .all(20),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .center,
+                                    children: [
+                                      Expanded(child:
+                                      Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .center,
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .center,
+                                          children: [
+                                            Center(
+                                              child: Image
+                                                  .network(
+                                                  resultListCopy[index]
+                                                      .image),
+                                            ),
+                                            Center(
+                                              child: Text(
+                                                card
+                                                    .cityAndCountry,
+                                                style: const TextStyle(
+                                                    fontSize: 30.0),
+                                              ),
+                                            ),
+                                          ]
+                                      ),
+                                      ),
+                                      Row(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .center,
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .center,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
 
-  Future<List<Request>> _getRequestDetails() async {
+                                                });
+                                              },
+
+                                              style: ElevatedButton
+                                                  .styleFrom(
+                                                  backgroundColor: Colors
+                                                      .white
+                                              ),
+                                              child: const Row(
+                                                crossAxisAlignment: CrossAxisAlignment
+                                                    .center,
+                                                mainAxisAlignment: MainAxisAlignment
+                                                    .end,
+                                                children: [
+                                                  Icon(
+                                                    Icons
+                                                        .favorite,
+                                                    size: 30.0,
+                                                    color: Colors
+                                                        .red,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                                width: 20),
+                                            closeButton(),
+                                          ]
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              )
+                          );
+                        }).toList());
+                  }
+                  else {
+                    _updatePlan();
+                    return  Center(
+                        child: AlertDialog(
+                          title: const Text(
+                              'Your preferences are saved'),
+                          content: const Text(
+                              'After your friends will complete the request, you will receive a notification'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () =>
+                                  setState(() {
+                                    Navigator
+                                        .push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                            const HomePage()));
+                                  }
+                                  ),
+                              child: const Text(
+                                  'Continue'),
+                            ),
+                          ],
+                        )
+                    );
+                  }
+                }
+              }
+                return const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment
+                          .spaceEvenly,
+                      children: <Widget>[
+                        SpinKitCircle(
+                          color: Colors.grey,
+                          size: 90.0,
+                        )
+                      ]
+                  ),
+                );
+              });
+          }
+  Future<bool> _getRequestDetails() async {
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     String userIdRequest = "";
     String userPhoneRequest = "";
@@ -559,9 +910,31 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           }
     } catch (error) {
       log(error.toString());
+      return false;
     }
     msgGlobal = getMessage();
-    return request;
+    return true;
+  }
+  Future<bool> _getRequestStatus() async {
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    try {
+      DataSnapshot snapshot = await ref.child('plan').get();
+      for (var planLocal in snapshot.children) {
+        if (planLocal
+            .child("requestId")
+            .value!
+            .toString() == globalRequest.key) {
+        if(planLocal.child("voted").value!.toString().contains("no")){
+          return false;
+        }
+        }
+      }
+    } catch (error) {
+      log(error.toString());
+      return false;
+    }
+    _updateRequest();
+    return true;
   }
   String getMessage(){
     String msgRequest = "";
