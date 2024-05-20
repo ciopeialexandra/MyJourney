@@ -43,6 +43,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   late Future<bool> isRequestCompleted;
   late Future<void> waitPlanUpdate;
   int indexGlobal = 0;
+  String  resultKeyParam = "";
 
   @override
   void initState() {
@@ -107,7 +108,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
             .toString() == globalRequest.key
         ) {
           Result resultData = Result("", "", ""," ");
-          resultData.key = resultLocal.key.toString();
+          resultData.key = resultLocal.key!;
           resultData.itinerary = resultLocal
               .child("itinerary")
               .value
@@ -227,9 +228,10 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       });
   }
   void _updateResult() async{
-    // if(areResultsGeneratedGlobal){
-    //   resultKey = resultKeyParam;
-    // }
+    if(areResultsGeneratedGlobal){
+      resultKey = resultKeyParam;
+      print(resultKey);
+    }
     int numberOfLikes = 0;
     String cityAndCountry = "";
     String itinerary = "";
@@ -450,6 +452,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
                                   direction: DismissDirection.horizontal,
                                   onDismissed: (direction) {
                                     setState(() {
+                                      resultKeyParam = resultList[index].key;
                                       resultListLocal.removeAt(index);
                                       swipeNumber ++;
                                     });
