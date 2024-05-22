@@ -8,6 +8,7 @@ import 'package:myjorurney/screens/country_page.dart';
 import 'package:countries_world_map/countries_world_map.dart';
 import 'package:countries_world_map/data/maps/world_map.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
+import '../common/custom_form_button.dart';
 import '../data/globals.dart';
 import 'add-friend_page.dart';
 import 'choose-trip_page.dart';
@@ -24,9 +25,8 @@ class _HomePageState extends State<HomePage> {
   final User? user = Auth().currentUser;
   int notificationNumber = 0;
   int numberOfRequests = 0;
-  int selctedNavIndex = 0;
+  int currentPageIndex = 0;
   List<String> pages = ["Chat", "Search", "History", "Notification", "Profile"];
-  static const Color bottonNavBgColor = Color(0xFF17203A);
   late Future<bool> areResultsGeneratedFuture;
 
   @override
@@ -231,7 +231,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _planButton() {
-    return ElevatedButton(
+    Size size = MediaQuery.of(context).size;
+    return Container(
+        width: size.width * 0.8,
+        decoration: BoxDecoration(
+        color: const Color(0xffdbe8e8),
+    borderRadius: BorderRadius.circular(26),
+    ),
+    child: TextButton(
       //     onPressed: () async {
       //       if(await Permission.contacts.request().isGranted) {
       //         setState(() {
@@ -286,7 +293,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
           ),
-      child: const Text('Plan a trip'),
+      child: const Text("Plan a trip", style: TextStyle(color: Colors.black, fontSize: 18),),
+    )
     );
   }
 
@@ -415,16 +423,19 @@ class _HomePageState extends State<HomePage> {
             children: [
               _planButton()
             ],
-          )
+          ),
+           const SizedBox(height: 60,),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
           setState(() {
-            // currentPageIndex = index;
+             currentPageIndex = index;
           });
         },
-        indicatorColor: Colors.amber,
+        selectedIndex: currentPageIndex,
+        backgroundColor: const Color(0xffdbe8e8),
+        indicatorColor: const Color(0xff05cece),
         //selectedIndex: currentPageIndex,
         destinations:  <Widget>[
           const NavigationDestination(
