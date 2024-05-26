@@ -4,6 +4,7 @@ class Plan {
   String budget;
   String date;
   String town;
+  String days = "";
   bool isSkiing;
   bool isBigCity;
   bool isHistoricalHeritage;
@@ -11,13 +12,21 @@ class Plan {
   bool isShopping;
   bool isNature;
   bool isTropical;
-  bool isThree;
-  bool isSeven;
-  bool isTen;
+  bool isNightlife;
+  bool isUnique;
+  bool isPopular;
+  bool isLuxury;
+  bool isCruises;
+  bool isRomantic;
+  bool isThermalSpa;
+  bool isAdventure;
+  bool isRelaxing;
+  bool isGroupTravel;
+  bool isSoloTravel;
   String userId;
   String voted = "no";
 
-  Plan(this.key, this.budget, this.date, this.town,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isThree,this.isSeven,this.isTen,this.userId);
+  Plan(this.key, this.budget, this.date, this.town,this.isThermalSpa,this.isAdventure,this.isRelaxing,this.isGroupTravel,this.isSoloTravel,this.isUnique,this.isPopular,this.isLuxury,this.isCruises,this.isRomantic,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isNightlife,this.userId);
 
   void setPlanKey(String? key) {
     this.key = key;
@@ -27,6 +36,36 @@ class Plan {
   }
   void setPlanDate(String date) {
     this.date = date;
+  }
+  void setPlanUnique(bool value) {
+    isUnique = value;
+  }
+  void setPlanPopular(bool value) {
+    isPopular = value;
+  }
+  void setPlanGroupTravel(bool value) {
+    isGroupTravel = value;
+  }
+  void setPlanSoloTravel(bool value) {
+    isSoloTravel = value;
+  }
+  void setPlanLuxury(bool value) {
+    isLuxury = value;
+  }
+  void setPlanCruises(bool value) {
+    isCruises = value;
+  }
+  void setPlanRomantic(bool value) {
+    isRomantic = value;
+  }
+  void setPlanRelaxing(bool value) {
+    isRelaxing = value;
+  }
+  void setPlanThermalSpa(bool value) {
+    isThermalSpa = value;
+  }
+  void setPlanAdventure(bool value) {
+    isAdventure = value;
   }
   void setPlanSki(bool value) {
     isSkiing = value;
@@ -40,6 +79,9 @@ class Plan {
   void setPlanSwim(bool value) {
     isSwimming = value;
   }
+  void setPlanNightlife(bool value) {
+    isNightlife = value;
+  }
   void setPlanShopping(bool value) {
     isShopping = value;
   }
@@ -52,14 +94,8 @@ class Plan {
   void setPlanTropical(bool value) {
     isTropical = value;
   }
-  void setPlanThree(bool value) {
-    isThree = value;
-  }
-  void setPlanSeven(bool value) {
-    isSeven = value;
-  }
-  void setPlanTen(bool value) {
-    isTen = value;
+  void setPlanDays(String value) {
+    days = value;
   }
   // void setPlanStartDate(DateTime value) {
   //   startDate = value;
@@ -100,14 +136,41 @@ class Plan {
   bool getPlanTropical(){
     return isTropical;
   }
-  bool getPlanThree(){
-    return isThree;
+  String getPlanDays(){
+    return days;
   }
-  bool getPlanSeven(){
-    return isSeven;
+  bool getPlanNightlife(){
+    return isNightlife;
   }
-  bool getPlanTen(){
-    return isTen;
+  bool getPlanUnique(){
+    return isUnique;
+  }
+  bool getPlanPopular(){
+    return isPopular;
+  }
+  bool getPlanLuxury(){
+    return isLuxury;
+  }
+  bool getPlanCruises(){
+    return isCruises;
+  }
+  bool getPlanRomantic(){
+    return isRomantic;
+  }
+  bool getPlanThermalSpa(){
+    return isThermalSpa;
+  }
+  bool getPlanAdventure(){
+    return isAdventure;
+  }
+  bool getPlanRelaxing(){
+    return isRelaxing;
+  }
+  bool getPlanGroupTravel(){
+    return isGroupTravel;
+  }
+  bool getPlanSoloTravel(){
+    return isSoloTravel;
   }
   // DateTime getPlanStartDate(){
   //   return startDate;

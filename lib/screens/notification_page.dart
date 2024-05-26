@@ -2,6 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:myjorurney/common/page_heading.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
 import '../data/globals.dart';
 import '../data/plan.dart';
@@ -37,7 +38,7 @@ class _NotificationPageState extends State<NotificationPage> {
                 .child("budget")
                 .value!
                 .toString().isEmpty) { //aici cautam daca userul curent are vreun request deschis
-          Plan localPlan = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,"");
+          Plan localPlan = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,"");
           requestId = planLocal.child("requestId").value!.toString();
           requestLocal.key = requestId;
           DataSnapshot requestPlan = await ref.child('plan').get();
@@ -54,49 +55,61 @@ class _NotificationPageState extends State<NotificationPage> {
               userNameRequest = userLocal.child("name").value!.toString();
             }
           }
+          localPlan.days = planLocal.child("days").toString();
           localPlan.date = planLocal.child("date").toString();
           localPlan.budget = planLocal.child("budget").toString();
+          print("a");
           if (planLocal.child("isBeach").toString() == "true") {
             localPlan.isSwimming = true;
-          }
-          else
-          {
-            localPlan.isSwimming = false;
           }
           if (planLocal.child("isCity").toString() == "true") {
             localPlan.isBigCity = true;
           }
-          else
-          {
-            localPlan.isBigCity = false;
+
+          if (planLocal.child("isNightlife").toString() == "true") {
+            localPlan.isNightlife = true;
           }
           if (planLocal.child("isHistorical").toString() == "true") {
             localPlan.isHistoricalHeritage = true;
           }
-          else
-          {
-            localPlan.isHistoricalHeritage = false;
-          }
           if (planLocal.child("isNature").toString() == "true") {
             localPlan.isNature = true;
-          }
-          else
-          {
-            localPlan.isNature = false;
           }
           if (planLocal.child("isSki").toString() == "true") {
             localPlan.isSkiing = true;
           }
-          else
-          {
-            localPlan.isSkiing = false;
-          }
           if (planLocal.child("isTropical").toString() == "true") {
             localPlan.isTropical = true;
           }
-          else
-          {
-            localPlan.isTropical = false;
+          if(planLocal.child("isUnique").value!.toString()=="true") {
+            localPlan.isUnique = true;
+          }
+          if(planLocal.child("isPopular").value!.toString()=="true") {
+            localPlan.isPopular = true;
+          }
+          if(planLocal.child("isLuxury").value!.toString()=="true") {
+            localPlan.isLuxury = true;
+          }
+          if(planLocal.child("isCruises").value!.toString()=="true") {
+            localPlan.isCruises = true;
+          }
+          if(planLocal.child("isRomantic").value!.toString()=="true") {
+            localPlan.isRomantic = true;
+          }
+          if(planLocal.child("isThermalSpa").value!.toString()=="true") {
+            localPlan.isThermalSpa = true;
+          }
+          if(planLocal.child("isAdventure").value!.toString()=="true") {
+            localPlan.isAdventure = true;
+          }
+          if(planLocal.child("isRelaxing").value!.toString()=="true") {
+            localPlan.isRelaxing = true;
+          }
+          if(planLocal.child("isGroupTravel").value!.toString()=="true") {
+            localPlan.isGroupTravel = true;
+          }
+          if(planLocal.child("isSoloTravel").value!.toString()=="true") {
+            localPlan.isSoloTravel = true;
           }
           requestLocal.setPlan(localPlan);
           requestLocal.setPhoneNumber(userPhoneRequest);
@@ -109,20 +122,6 @@ class _NotificationPageState extends State<NotificationPage> {
     }
     return request;
   }
-  Widget _animatedText(){
-    return DefaultTextStyle(
-      style: const TextStyle(
-          fontSize: 20.0,
-          color: Colors.black
-      ),
-      child: AnimatedTextKit(
-        animatedTexts : [
-          TyperAnimatedText('Your notifications:'),
-        ],
-        isRepeatingAnimation: false,
-      ),
-    );
-  }
   void navigateToPlan() {
     isPlanRequest = true;
     Navigator.push(
@@ -133,14 +132,11 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
     );
   }
-  Widget _title() {
-    return const Text("My Journey");
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: _title(),
+          title: const PageHeading( title: "Notifications",),
         ),
         body: FutureBuilder<void>(
           future: _setRequestDetails(),
@@ -150,10 +146,7 @@ class _NotificationPageState extends State<NotificationPage> {
             } else {
               return ListView(
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _animatedText(),
-                  ),
+                  const SizedBox(height: 20,),
                   ListView.separated(
                     padding: const EdgeInsets.all(8),
                     shrinkWrap: true,
@@ -170,8 +163,19 @@ class _NotificationPageState extends State<NotificationPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(request[index].phoneNumber[0]), // aici  ar trebui afisati toti userii de la care vine requestul,nu doar de la primul
-                              Text(request[index].userName[0]),
+                              Container(
+                                color: const Color(0xffdbe8e8),
+                             height: 50,
+                             child: Row(
+                                children: [
+                              Text(request[index].userName[0], style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 20,
+                                  fontFamily: 'NotoSerif'),),
+                              const Text(" is inviting you on a trip", style: TextStyle(color: Colors.black,fontSize: 20,
+                                  fontFamily: 'NotoSerif')),
+                          ],
+                              )
+                              )
+
                             ],
                           ),
                         ),

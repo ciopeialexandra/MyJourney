@@ -36,21 +36,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Widget _title() {
-    return const Text("My journey");
-  }
-
-  Widget _entryField(String title,
-      TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-          labelText: title
-      ),
-    );
-  }
-
-
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;

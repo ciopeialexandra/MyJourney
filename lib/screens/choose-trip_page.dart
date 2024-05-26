@@ -291,7 +291,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     }
   }
   Future<void> _updatePlan() async{
-    Plan planLocal = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,"");
+    Plan planLocal = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,"");
     int days = 0;
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
@@ -308,20 +308,13 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           planLocal.date = planIterator.child("date").value.toString();
           planLocal.budget = planIterator.child("budget").value.toString();
           planLocal.town = planIterator.child("departure").value.toString();
-          if(planIterator.child("days").value.toString() == "7") {
-            planLocal.isSeven = true;
-            days = 7;
-          }
-          else if(planIterator.child("days").value.toString() == "3") {
-            planLocal.isThree = true;
-            days = 3;
-          }
-          else if(planIterator.child("days").value.toString() == "10") {
-            planLocal.isTen = true;
-            days = 10;
-          }
+          planLocal.days = planIterator.child("days").value.toString();
+
           if(planIterator.child("isBeach").value.toString() == "true") {
             planLocal.isSwimming = true;
+          }
+          if(planIterator.child("isNightlife").value.toString() == "true") {
+            planLocal.isNightlife = true;
           }
           if(planIterator.child("isHistorical").value.toString() == "true") {
             planLocal.isHistoricalHeritage = true;
@@ -341,6 +334,37 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           if(planIterator.child("isShopping").value.toString() == "true") {
             planLocal.isShopping = true;
           }
+
+          if(planIterator.child("isUnique").value.toString() == "true") {
+            planLocal.isUnique = true;
+          }
+          if(planIterator.child("isPopular").value.toString() == "true") {
+            planLocal.isPopular = true;
+          }
+          if(planIterator.child("isLuxury").value.toString() == "true") {
+            planLocal.isLuxury = true;
+          }
+          if(planIterator.child("isCruises").value.toString() == "true") {
+            planLocal.isCruises = true;
+          }
+          if(planIterator.child("isRomantic").value.toString() == "true") {
+            planLocal.isRomantic = true;
+          }
+          if(planIterator.child("isThermalSpa").value.toString() == "true") {
+            planLocal.isThermalSpa = true;
+          }
+          if(planIterator.child("isAdventure").value.toString() == "true") {
+            planLocal.isAdventure = true;
+          }
+          if(planIterator.child("isRelaxing").value.toString() == "true") {
+            planLocal.isRelaxing = true;
+          }
+          if(planIterator.child("isGroupTravel").value.toString() == "true") {
+            planLocal.isGroupTravel = true;
+          }
+          if(planIterator.child("isSoloTravel").value.toString() == "true") {
+            planLocal.isSoloTravel = true;
+          }
         }
       }
     }catch (error) {
@@ -351,7 +375,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       "budget": planLocal.getPlanBudget(),
       "departure": planLocal.getPlanTown(),
       "date": planLocal.getPlanDate(),
-      "days": days,
+      "days": planLocal.getPlanDays(),
       "isSki": plan.getPlanSki(),
       "isCity": plan.getPlanCity(),
       "isHistorical": plan.getPlanHistorical(),
@@ -360,6 +384,17 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       "isSwim": plan.getPlanSwim(),
       "isTropical": plan.getPlanTropical(),
       "isShopping": plan.getPlanShopping(),
+      "isNightlife": plan.getPlanNightlife(),
+      "isUnique": plan.getPlanUnique(),
+      "isPopular": plan.getPlanPopular(),
+      "isLuxury": plan.getPlanLuxury(),
+      "isCruises": plan.getPlanCruises(),
+      "isRomantic": plan.getPlanRomantic(),
+      "isThermalSpa": plan.getPlanThermalSpa(),
+      "isAdventure": plan.getPlanAdventure(),
+      "isRelaxing": plan.getPlanRelaxing(),
+      "isGroupTravel": plan.getPlanGroupTravel(),
+      "isSoloTravel": plan.getPlanSoloTravel(),
       "requestId": globalRequest.key,
       "voted": "yes"
     };
@@ -853,7 +888,7 @@ Widget waitForRequestDetails(){
     String userIdRequest = "";
     String userPhoneRequest = "";
     String userNameRequest = "";
-    Plan localPlan = Plan("", "", "", "", false, false, false, false, false, false, false, false, false, false, "");
+    Plan localPlan = Plan("", "", "", "", false, false, false, false, false, false, false,false,  false,false,false,false,false,false,false,false,false,false,"");
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {
@@ -865,6 +900,9 @@ Widget waitForRequestDetails(){
               localPlan.budget = planLocal.child("budget").value.toString();
               if (planLocal.child("isBeach").value!.toString() == "true") {
                 localPlan.isSwimming = true;
+              }
+              if (planLocal.child("isNightlife").value!.toString() == "true") {
+                localPlan.isNightlife = true;
               }
               if (planLocal.child("isCity").value!.toString() == "true") {
                 localPlan.isBigCity = true;
@@ -881,15 +919,37 @@ Widget waitForRequestDetails(){
               if (planLocal.child("isTropical").value!.toString() == "true") {
                 localPlan.isTropical = true;
               }
-              if(planLocal.child("days").value!.toString() == "7"){
-                localPlan.isSeven = true;
+              if(planLocal.child("isUnique").value!.toString()=="true") {
+                localPlan.isUnique = true;
               }
-              else if(planLocal.child("days").value!.toString() == "10"){
-                localPlan.isTen = true;
+              if(planLocal.child("isPopular").value!.toString()=="true") {
+                localPlan.isPopular = true;
               }
-              else if(planLocal.child("days").value!.toString() == "3"){
-                localPlan.isThree = true;
+              if(planLocal.child("isLuxury").value!.toString()=="true") {
+                localPlan.isLuxury = true;
               }
+              if(planLocal.child("isCruises").value!.toString()=="true") {
+                localPlan.isCruises = true;
+              }
+              if(planLocal.child("isRomantic").value!.toString()=="true") {
+                localPlan.isRomantic = true;
+              }
+              if(planLocal.child("isThermalSpa").value!.toString()=="true") {
+                localPlan.isThermalSpa = true;
+              }
+              if(planLocal.child("isAdventure").value!.toString()=="true") {
+                localPlan.isAdventure = true;
+              }
+              if(planLocal.child("isRelaxing").value!.toString()=="true") {
+                localPlan.isRelaxing = true;
+              }
+              if(planLocal.child("isGroupTravel").value!.toString()=="true") {
+                localPlan.isGroupTravel = true;
+              }
+              if(planLocal.child("isSoloTravel").value!.toString()=="true") {
+                localPlan.isSoloTravel = true;
+              }
+              localPlan.days = planLocal.child("days").value.toString();
                 localPlan.town = planLocal.child("departure").value!.toString();
               userIdRequest = planLocal.child("userId").value!.toString();
               DataSnapshot requestUser = await ref.child('user').get();
@@ -946,14 +1006,11 @@ Widget waitForRequestDetails(){
     String budget = "";
 
       for(int i=0;i<globalRequest.plan.length;i++){
-        if(globalRequest.plan[i].isTen && !days.contains("10")){
-          days = "$days 10";
+        if(!days.contains(globalRequest.plan[i].getPlanDays())&& days.isNotEmpty) {
+          days = "$days or ${globalRequest.plan[i]} days";
         }
-        else if(globalRequest.plan[i].isSeven && days.contains("7")){
-          days = "$days 7";
-        }
-        else if(globalRequest.plan[i].isThree && days.contains("3")){
-          days = "$days  3";
+        else if(!days.contains(globalRequest.plan[i].getPlanDays())&& days.isEmpty) {
+          days = "$days ${globalRequest.plan[i]} days";
         }
         if(globalRequest.plan[i].isTropical && !msgRequest.contains("tropical")){
           msgRequest = "$msgRequest be a tropical place,";
@@ -976,12 +1033,41 @@ Widget waitForRequestDetails(){
         if(globalRequest.plan[i].isHistoricalHeritage && !msgRequest.contains("historical")){
           msgRequest = "$msgRequest have historical attractions ,";
         }
+        if(globalRequest.plan[i].isNightlife && !msgRequest.contains("night")){
+          msgRequest = "$msgRequest have a nice nightlife ,";
+        }
         if(globalRequest.plan[i].budget.compareTo( budget)>0){
           budget = globalRequest.plan[i].budget;
         }
-        if(!destination.contains(globalRequest.plan[i].town)){
-          String newTown = globalRequest.plan[i].town;
-          destination = "$destination or $newTown";
+        if(globalRequest.plan[i].isUnique && !msgRequest.contains("unique")) {
+          msgRequest = "$msgRequest is a unique place ,";
+        }
+        if(globalRequest.plan[i].isPopular && !msgRequest.contains("popular")) {
+          msgRequest = "$msgRequest is a popular destination ,";
+        }
+        if(globalRequest.plan[i].isLuxury && !msgRequest.contains("luxury")) {
+          msgRequest = "$msgRequest is a luxury destination,";
+        }
+        if(globalRequest.plan[i].isCruises && !msgRequest.contains("cruises")) {
+          msgRequest = "$msgRequest go on a cruise,";
+        }
+        if(globalRequest.plan[i].isRomantic && !msgRequest.contains("romantic")) {
+          msgRequest = "$msgRequest is a romantic destination ,";
+        }
+        if(globalRequest.plan[i].isThermalSpa && !msgRequest.contains("thermal")) {
+          msgRequest = "$msgRequest have a thermal spa ,";
+        }
+        if(globalRequest.plan[i].isAdventure && !msgRequest.contains("adventure")) {
+          msgRequest = "$msgRequest have adventure activities ,";
+        }
+        if(globalRequest.plan[i].isRelaxing && !msgRequest.contains("relax")) {
+          msgRequest = "$msgRequest have relaxing activities ,";
+        }
+        if(globalRequest.plan[i].isGroupTravel && !msgRequest.contains("group")) {
+          msgRequest = "$msgRequest is recommended for a group travel ,";
+        }
+        if(globalRequest.plan[i].isSoloTravel && !msgRequest.contains("solo")) {
+          msgRequest = "$msgRequest is recommended for a solo travel ,";
         }
       }
     String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of $budget euro, for $days days, from $destination. I want the destination to: $msgRequest";

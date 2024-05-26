@@ -299,57 +299,6 @@ class _ChatScreenState extends State<ChatScreen> {
       String msgRequest = "";
       String days = "";
       String destination = "";
-      String budget = plan.getPlanBudget();
-      if(plan.isThree){
-        days = " 3 ";
-      }
-      else if(plan.isSeven){
-        days = " 7 ";
-      }
-      else if(plan.isTen){
-        days = " 10 ";
-      }
-      if(isPlanRequest == true){
-        for(int i=0;i<request[requestIndex].userName.length;i++){
-          if(request[requestIndex].plan[i].isTen && !days.contains("10")){
-            days = "$days or 10";
-          }
-          else if(request[requestIndex].plan[i].isSeven && days.contains("7")){
-            days = "$days or 7";
-          }
-          else if(request[requestIndex].plan[i].isThree && days.contains("3")){
-            days = "$days or 3";
-          }
-          if(request[requestIndex].plan[i].isTropical && !msgRequest.contains("tropical")){
-            msgRequest = "$msgRequest, be a tropical place";
-          }
-          if(request[requestIndex].plan[i].isShopping && !msgRequest.contains("shopping")){
-            msgRequest = "$msgRequest, have places to go shopping";
-          }
-          if(request[requestIndex].plan[i].isSwimming && !msgRequest.contains("swim")){
-            msgRequest = "$msgRequest, have beaches where you can swim close by ";
-          }
-          if(request[requestIndex].plan[i].isBigCity && !msgRequest.contains("city")){
-            msgRequest = "$msgRequest, be a big city";
-          }
-          if(request[requestIndex].plan[i].isSkiing && !msgRequest.contains("mountains")){
-            msgRequest = "$msgRequest, have mountains ";
-          }
-          if(request[requestIndex].plan[i].isNature && !msgRequest.contains("nature")){
-            msgRequest = "$msgRequest, be a lot of nature ";
-          }
-          if(request[requestIndex].plan[i].isHistoricalHeritage && !msgRequest.contains("historical")){
-            msgRequest = "$msgRequest, have historical attractions ";
-          }
-          if(request[requestIndex].plan[i].budget.compareTo( plan.getPlanBudget())>0){
-            budget = request[requestIndex].plan[i].budget;
-          }
-          if(!destination.contains(request[requestIndex].plan[i].town)){
-            String newTown = request[requestIndex].plan[i].town;
-            destination = "$destination or $newTown";
-          }
-        }
-      }
       String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of ${plan.getPlanBudget()} euro, for $days days, from $destination. I want the destination to: $msgRequest";
       if(plan.isShopping && !msgRequest.contains("shopping")){
         msg = "$msg, have places to go shopping ";
@@ -366,11 +315,44 @@ class _ChatScreenState extends State<ChatScreen> {
       if(plan.isTropical && !msgRequest.contains("tropical")){
         msg = "$msg be a tropical place ";
       }
+      if(plan.isNightlife && !msgRequest.contains("night")){
+        msg = "$msg, have a nice nightlife ";
+      }
       if(plan.isSkiing && !msgRequest.contains("mountains")){
         msg = "$msg have mountains ";
       }
       if(plan.isNature && !msgRequest.contains("nature")){
         msg = "$msg be a lot of nature ";
+      }
+      if(plan.isUnique && !msgRequest.contains("unique")) {
+        msgRequest = "$msgRequest is a unique place ,";
+      }
+      if(plan.isPopular && !msgRequest.contains("popular")) {
+        msgRequest = "$msgRequest is a popular destination ,";
+      }
+      if(plan.isLuxury && !msgRequest.contains("luxury")) {
+        msgRequest = "$msgRequest is a luxury destination,";
+      }
+      if(plan.isCruises && !msgRequest.contains("cruises")) {
+        msgRequest = "$msgRequest go on a cruise,";
+      }
+      if(plan.isRomantic && !msgRequest.contains("romantic")) {
+        msgRequest = "$msgRequest is a romantic destination ,";
+      }
+      if(plan.isThermalSpa && !msgRequest.contains("thermal")) {
+        msgRequest = "$msgRequest have a thermal spa ,";
+      }
+      if(plan.isAdventure && !msgRequest.contains("adventure")) {
+        msgRequest = "$msgRequest have adventure activities ,";
+      }
+      if(plan.isRelaxing && !msgRequest.contains("relax")) {
+        msgRequest = "$msgRequest have relaxing activities ,";
+      }
+      if(plan.isGroupTravel && !msgRequest.contains("group")) {
+        msgRequest = "$msgRequest is recommended for a group travel ,";
+      }
+      if(plan.isSoloTravel && !msgRequest.contains("solo")) {
+        msgRequest = "$msgRequest is recommended for a solo travel ,";
       }
       msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
       return msg;

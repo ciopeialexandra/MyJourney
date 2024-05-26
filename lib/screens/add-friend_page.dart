@@ -3,6 +3,7 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
+import '../common/page_heading.dart';
 import '../data/globals.dart';
 
 
@@ -53,7 +54,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   Widget _animatedText(){
     return DefaultTextStyle(
       style: const TextStyle(
-          fontSize: 40.0,
+          fontSize: 30.0,
           color: Colors.black
       ),
       child: AnimatedTextKit(
@@ -64,16 +65,19 @@ class _AddFriendPageState extends State<AddFriendPage> {
       ),
     );
   }
-  Widget _title(){
-    return const Text("My Journey");
-  }
   Widget _nextButton() {
     for (int i = 0; i < contacts.length; i++) {
       if (isSelected[i] == true) {
         isFriendsTrip = true;
       }
-    }
-    return ElevatedButton(
+    }Size size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width * 0.8,
+      decoration: BoxDecoration(
+        color: const Color(0xffdbe8e8),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: TextButton(
       onPressed: () {
         setState(() {
           Navigator.push(
@@ -85,7 +89,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
           );
         });
       },
-      child: const Text('Next'),
+      child: const Text('Next', style: TextStyle(color: Colors.black, fontSize: 18)),
+    )
     );
   }
 
@@ -98,30 +103,31 @@ class _AddFriendPageState extends State<AddFriendPage> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: _title(),
+        title: _animatedText(),
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _animatedText(),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             TextField(
               controller: searchController,
-              decoration:  InputDecoration(
+              decoration:   InputDecoration(
                   labelText: 'Search',
                 border: OutlineInputBorder(
-                  borderSide:BorderSide(
-                    color: Theme.of(context).primaryColor
+                    borderRadius: BorderRadius.circular(30),
+                  borderSide:const BorderSide(
+                    color: Colors.black
                   )
                 ),
-                prefixIcon:  Icon(
+                prefixIcon:  const Icon(
                     Icons.search,
-                  color: Theme.of(context).primaryColor,
+                  color: Colors.black
                 )
               ),
             ),
+            const SizedBox(height: 40),
         Expanded(
           child: ListView.builder(
             shrinkWrap: true,
@@ -151,7 +157,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
         ),
            Expanded(
                child: Align(
-                 alignment: Alignment.bottomRight,
+                 alignment: Alignment.bottomCenter,
                  child: _nextButton(),
                ),
            ),
