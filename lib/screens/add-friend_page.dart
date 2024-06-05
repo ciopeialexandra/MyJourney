@@ -3,7 +3,6 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/plan-trip_page.dart';
-import '../common/page_heading.dart';
 import '../data/globals.dart';
 
 

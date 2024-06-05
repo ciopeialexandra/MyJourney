@@ -7,6 +7,7 @@ import 'package:myjorurney/screens/plan-trip_page.dart';
 import '../data/globals.dart';
 import '../data/plan.dart';
 import '../data/request.dart';
+import '../data/user.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -25,8 +26,10 @@ class _NotificationPageState extends State<NotificationPage> {
     String userIdRequest = "";
     String userPhoneRequest = "";
     String userNameRequest = "";
+    String userKeyRequest = "";
+    String userEmailRequest = "";
     request = [];
-    Request requestLocal = Request("", [], [], []);
+    Request requestLocal = Request("", [], [],"");
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {
@@ -38,7 +41,7 @@ class _NotificationPageState extends State<NotificationPage> {
                 .child("budget")
                 .value!
                 .toString().isEmpty) { //aici cautam daca userul curent are vreun request deschis
-          Plan localPlan = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,"");
+          Plan localPlan = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,"");
           requestId = planLocal.child("requestId").value!.toString();
           requestLocal.key = requestId;
           DataSnapshot requestPlan = await ref.child('plan').get();
@@ -53,6 +56,8 @@ class _NotificationPageState extends State<NotificationPage> {
             if(userLocal.key == userIdRequest ){ //cautam in user user-ul care a trimis requestul
               userPhoneRequest = userLocal.child("telephone").value!.toString();
               userNameRequest = userLocal.child("name").value!.toString();
+              userKeyRequest = userLocal.key.toString();
+              userEmailRequest = userLocal.child("email").value!.toString();
             }
           }
           localPlan.days = planLocal.child("days").toString();
@@ -105,15 +110,9 @@ class _NotificationPageState extends State<NotificationPage> {
           if(planLocal.child("isRelaxing").value!.toString()=="true") {
             localPlan.isRelaxing = true;
           }
-          if(planLocal.child("isGroupTravel").value!.toString()=="true") {
-            localPlan.isGroupTravel = true;
-          }
-          if(planLocal.child("isSoloTravel").value!.toString()=="true") {
-            localPlan.isSoloTravel = true;
-          }
           requestLocal.setPlan(localPlan);
-          requestLocal.setPhoneNumber(userPhoneRequest);
-          requestLocal.setUserName(userNameRequest);
+          UserClass user = UserClass(userKeyRequest,userNameRequest,userEmailRequest,userPhoneRequest);
+          requestLocal.user.add(user);
           request.add(requestLocal);
         }
       }
@@ -168,7 +167,7 @@ class _NotificationPageState extends State<NotificationPage> {
                              height: 50,
                              child: Row(
                                 children: [
-                              Text(request[index].userName[0], style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 20,
+                              Text(request[index].user[0].name, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 20,
                                   fontFamily: 'NotoSerif'),),
                               const Text(" is inviting you on a trip", style: TextStyle(color: Colors.black,fontSize: 20,
                                   fontFamily: 'NotoSerif')),

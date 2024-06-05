@@ -21,12 +21,10 @@ class Plan {
   bool isThermalSpa;
   bool isAdventure;
   bool isRelaxing;
-  bool isGroupTravel;
-  bool isSoloTravel;
   String userId;
   String voted = "no";
 
-  Plan(this.key, this.budget, this.date, this.town,this.isThermalSpa,this.isAdventure,this.isRelaxing,this.isGroupTravel,this.isSoloTravel,this.isUnique,this.isPopular,this.isLuxury,this.isCruises,this.isRomantic,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isNightlife,this.userId);
+  Plan(this.key, this.budget, this.date, this.town,this.isThermalSpa,this.isAdventure,this.isRelaxing,this.isUnique,this.isPopular,this.isLuxury,this.isCruises,this.isRomantic,this.isSkiing,this.isBigCity,this.isHistoricalHeritage,this.isSwimming,this.isShopping,this.isNature,this.isTropical,this.isNightlife,this.userId);
 
   void setPlanKey(String? key) {
     this.key = key;
@@ -42,12 +40,6 @@ class Plan {
   }
   void setPlanPopular(bool value) {
     isPopular = value;
-  }
-  void setPlanGroupTravel(bool value) {
-    isGroupTravel = value;
-  }
-  void setPlanSoloTravel(bool value) {
-    isSoloTravel = value;
   }
   void setPlanLuxury(bool value) {
     isLuxury = value;
@@ -165,12 +157,6 @@ class Plan {
   }
   bool getPlanRelaxing(){
     return isRelaxing;
-  }
-  bool getPlanGroupTravel(){
-    return isGroupTravel;
-  }
-  bool getPlanSoloTravel(){
-    return isSoloTravel;
   }
   // DateTime getPlanStartDate(){
   //   return startDate;

@@ -1,12 +1,13 @@
 import 'package:myjorurney/data/plan.dart';
+import 'package:myjorurney/data/user.dart';
 
 class Request{
   String key;
+  String status;
   List<Plan> plan;
-  List<String> userName;
-  List<String> phoneNumber;
+  List<UserClass> user;
 
-  Request(this.key,this.plan,this.userName,this.phoneNumber);
+  Request(this.key,this.plan,this.user,this.status);
 
   void setKey(String key) {
     this.key = key;
@@ -14,11 +15,8 @@ class Request{
   void setPlan(Plan plan) {
     this.plan.add(plan);
   }
-  void setUserName(String userName) {
-    this.userName.add(userName);
-  }
-  void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber.add(phoneNumber);
+  void setUser(UserClass user) {
+    this.user.add(user);
   }
 
 }

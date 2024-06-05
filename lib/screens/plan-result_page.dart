@@ -1,10 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:myjorurney/screens/home_page.dart';
+import 'package:uuid/uuid.dart';
 import '../data/globals.dart';
+import '../data/result.dart';
 import '../services/api_constants.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,11 +31,17 @@ class _ChatScreenState extends State<ChatScreen> {
   String _generatedImageUrl = '';
   String chatGptAnswer = "";
   late List parts;
+  Result result=Result("", "", "", "");
+  String resultId = "";
+  late Future<bool> waitingForResultsFinished;
+  late Uint8List downloadedImage ;
+  late String _generatedImageName;
 
   @override
   void initState() {
     _listScrollController = ScrollController();
     focusNode = FocusNode();
+   waitingForResultsFinished = waitingForResult();
     super.initState();
   }
 
@@ -152,10 +166,56 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       );
     }
+  Future<void> _createResult() async{
+    var uuid = const Uuid().v1();
+    DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
+    resultId = uuid;
+    await ref.set({
+      "image": _generatedImageName,
+      "itinerary": parts[1],
+      "cityAndCountry": parts[0],
+      "requestId": globalRequestIdSoloTrip
+    });
+    _createRequest();
+  }
+  Future<Uint8List> downloadImage(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Failed to download image');
+    }
+  }
+  Future<void> uploadImage() async {
+    if(_generatedImageUrl.isNotEmpty) {
+      downloadedImage = await downloadImage(_generatedImageUrl);
+    }
+    try {
+      FirebaseStorage storage = FirebaseStorage.instance;
+      Reference ref = storage.ref().child('images/$_generatedImageName.jpg');
+      UploadTask uploadTask = ref.putData(downloadedImage);
+      await uploadTask.whenComplete(() {
+        print('File uploaded successfully');
+      });
+      String downloadUrl = await ref.getDownloadURL();
+      print('Download URL: $downloadUrl');
+    } catch (e) {
+      print('Error uploading image: $e');
+    }
+  }
+  void _createRequest() async {
+    DatabaseReference ref = FirebaseDatabase.instance.ref("request/$globalRequestIdSoloTrip");
+    await ref.set({
+      "status": "completed"
+    });
+  }
   Widget heartButton() {
     return TextButton(
       onPressed: () {
         setState(() {
+          _generatedImageName = const Uuid().v4();
+          uploadImage();
+          _createResult();
           isPlanRequest = true;
           Navigator.push(
               context,
@@ -164,7 +224,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   const HomePage()));
         });
       },
-
       style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white
       ),
@@ -210,65 +269,76 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
   void trimResult(){
-    int idx = chatGptAnswer.indexOf("Itinerary");
-    parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx+1).trim()];
+    if(chatGptAnswer.contains("Itinerary")) {
+      int idx = chatGptAnswer.indexOf("Itinerary");
+      parts = [
+        chatGptAnswer.substring(0, idx).trim(),
+        chatGptAnswer.substring(idx - 1).trim()
+      ];
+    }
+    else{
+      parts[0] = "No result found";
+      parts[1] = "Please try again";
+    }
   }
-  Future<void> waitingForResult() async{
+  Future<bool> waitingForResult() async{
     String msg = getMessage();
     await chatGPTAPI(msg);
     img =
-    "A realistic picture portraying a trip to $chatGptAnswer ";
+    "A realistic picture portraying a trip to $chatGptAnswer ,";
     await generateImage();
+    return true;
 }
 
   @override
   Widget build(BuildContext context) {
-    if (resultDisplayed == false) {
-      resultDisplayed = true;
-      waitingForResult();
-    }
-    if (_generatedImageUrl.isNotEmpty && chatGptAnswer.isNotEmpty) {
-      trimResult();
-      return Scaffold(
-          appBar: AppBar(
-            title: _title(),
-          ),
-          body:
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-                children: [
-                  Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.network(_generatedImageUrl),
-                            const SizedBox(height: 20),
-                            Row(
+    return Scaffold(
+        appBar: AppBar(
+        title: _title(),
+    ),
+    body: FutureBuilder<bool>(
+          future: waitingForResultsFinished,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if(snapshot.hasData) {
+              trimResult();
+                 return Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                        children: [
+                          Expanded(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.network(_generatedImageUrl),
+                                    const SizedBox(height: 20),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        itineraryButton(),
+                                        _countryAndCityText(),
+                                      ],
+                                    )
+                                    //Text(parts[1]),
+                                  ]
+                              )
+                          ),
+                          Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                itineraryButton(),
-                            _countryAndCityText(),
-                            ],
-                            )
-                            //Text(parts[1]),
-                          ]
-                      )
-                  ),
-                  Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      heartButton(),
-                      refreshButton(),
-                      ]
-                  )
-                ]
-            ),
-          )
-      );
-    }
+                                heartButton(),
+                                refreshButton(),
+                              ]
+                          )
+                        ]
+                    )
+    );
+            }
     else {
       return  Scaffold(
           appBar: AppBar(
@@ -288,6 +358,8 @@ class _ChatScreenState extends State<ChatScreen> {
           ));
     }
   }
+      ));
+  }
 
   void scrollListToEND() {
     _listScrollController.animateTo(
@@ -296,63 +368,54 @@ class _ChatScreenState extends State<ChatScreen> {
         curve: Curves.easeOut);
   }
   String getMessage(){
-      String msgRequest = "";
-      String days = "";
-      String destination = "";
-      String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of ${plan.getPlanBudget()} euro, for $days days, from $destination. I want the destination to: $msgRequest";
-      if(plan.isShopping && !msgRequest.contains("shopping")){
-        msg = "$msg, have places to go shopping ";
+      String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Rome,Italy', that would fit a budget of ${plan.getPlanBudget()} euro, for ${plan.days} days, from ${plan.town}. I want the destination to: ";
+      if(plan.isShopping){
+        msg = "$msg have places to go shopping,";
       }
-      if(plan.isSwimming && !msgRequest.contains("swim")){
-        msg = "$msg, have beaches where you can swim close by ";
+      if(plan.isSwimming){
+        msg = "$msg have beaches where you can swim close by,";
       }
-      if(plan.isHistoricalHeritage&& !msgRequest.contains("historical")){
-        msg = "$msg, have historical attractions ";
+      if(plan.isHistoricalHeritage){
+        msg = "$msg have historical attractions,";
       }
-      if(plan.isBigCity && !msgRequest.contains("city")){
-        msg = "$msg be a big city ";
+      if(plan.isBigCity){
+        msg = "$msg be a big city,";
       }
-      if(plan.isTropical && !msgRequest.contains("tropical")){
-        msg = "$msg be a tropical place ";
+      if(plan.isTropical){
+        msg = "$msg be a tropical place,";
       }
-      if(plan.isNightlife && !msgRequest.contains("night")){
-        msg = "$msg, have a nice nightlife ";
+      if(plan.isNightlife){
+        msg = "$msg have a wonderful nightlife with a lot of parties and fun,";
       }
-      if(plan.isSkiing && !msgRequest.contains("mountains")){
-        msg = "$msg have mountains ";
+      if(plan.isSkiing){
+        msg = "$msg have mountains,";
       }
-      if(plan.isNature && !msgRequest.contains("nature")){
-        msg = "$msg be a lot of nature ";
+      if(plan.isNature){
+        msg = "$msg be in the nature,";
       }
-      if(plan.isUnique && !msgRequest.contains("unique")) {
-        msgRequest = "$msgRequest is a unique place ,";
+      if(plan.isUnique) {
+        msg = "$msg is a unique place, not that popular as other destinations,";
       }
-      if(plan.isPopular && !msgRequest.contains("popular")) {
-        msgRequest = "$msgRequest is a popular destination ,";
+      if(plan.isPopular) {
+        msg = "$msg is a popular destination,";
       }
-      if(plan.isLuxury && !msgRequest.contains("luxury")) {
-        msgRequest = "$msgRequest is a luxury destination,";
+      if(plan.isLuxury) {
+        msg = "$msg is a luxury destination,";
       }
-      if(plan.isCruises && !msgRequest.contains("cruises")) {
-        msgRequest = "$msgRequest go on a cruise,";
+      if(plan.isCruises) {
+        msg = "$msg go on a cruise,";
       }
-      if(plan.isRomantic && !msgRequest.contains("romantic")) {
-        msgRequest = "$msgRequest is a romantic destination ,";
+      if(plan.isRomantic) {
+        msg = "$msg is a romantic destination,";
       }
-      if(plan.isThermalSpa && !msgRequest.contains("thermal")) {
-        msgRequest = "$msgRequest have a thermal spa ,";
+      if(plan.isThermalSpa) {
+        msg = "$msg have a thermal spa,";
       }
-      if(plan.isAdventure && !msgRequest.contains("adventure")) {
-        msgRequest = "$msgRequest have adventure activities ,";
+      if(plan.isAdventure) {
+        msg = "$msg have adventure activities,";
       }
-      if(plan.isRelaxing && !msgRequest.contains("relax")) {
-        msgRequest = "$msgRequest have relaxing activities ,";
-      }
-      if(plan.isGroupTravel && !msgRequest.contains("group")) {
-        msgRequest = "$msgRequest is recommended for a group travel ,";
-      }
-      if(plan.isSoloTravel && !msgRequest.contains("solo")) {
-        msgRequest = "$msgRequest is recommended for a solo travel ,";
+      if(plan.isRelaxing) {
+        msg = "$msg have relaxing activities,";
       }
       msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
       return msg;

@@ -14,6 +14,7 @@ import '../data/globals.dart';
 import '../data/plan.dart';
 import '../data/request.dart';
 import '../data/result.dart';
+import '../data/user.dart';
 import '../services/api_constants.dart';
 
 class ChooseTripPage extends StatefulWidget {
@@ -230,7 +231,6 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   void _updateResult() async{
     if(areResultsGeneratedGlobal){
       resultKey = resultKeyParam;
-      print(resultKey);
     }
     int numberOfLikes = 0;
     String cityAndCountry = "";
@@ -291,7 +291,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     }
   }
   Future<void> _updatePlan() async{
-    Plan planLocal = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,"");
+    Plan planLocal = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,"");
     int days = 0;
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
@@ -359,12 +359,6 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           if(planIterator.child("isRelaxing").value.toString() == "true") {
             planLocal.isRelaxing = true;
           }
-          if(planIterator.child("isGroupTravel").value.toString() == "true") {
-            planLocal.isGroupTravel = true;
-          }
-          if(planIterator.child("isSoloTravel").value.toString() == "true") {
-            planLocal.isSoloTravel = true;
-          }
         }
       }
     }catch (error) {
@@ -393,8 +387,6 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       "isThermalSpa": plan.getPlanThermalSpa(),
       "isAdventure": plan.getPlanAdventure(),
       "isRelaxing": plan.getPlanRelaxing(),
-      "isGroupTravel": plan.getPlanGroupTravel(),
-      "isSoloTravel": plan.getPlanSoloTravel(),
       "requestId": globalRequest.key,
       "voted": "yes"
     };
@@ -451,8 +443,28 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     );
   }
   void _updateRequest() async{
+    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    String likesNumber = "0";
+    String? resultId ="";
+    try {
+      DataSnapshot snapshot = await ref.child('result').get();
+      for (var resultLocal in snapshot.children) {
+        if (resultLocal
+            .child("requestId")
+            .value!
+            .toString() == globalRequest.key) {
+          if(likesNumber.compareTo(resultLocal.child("likes").value.toString())<0){
+            likesNumber = resultLocal.child("likes").value.toString();
+            resultId = resultLocal.key;
+          }
+        }
+      }
+    } catch (error) {
+      log(error.toString());
+    }
     final postData = {
-      "status": "completed"
+      "status": "completed",
+      "resultId": resultId
     };
     final Map<String, Map> updates = {};
     String key = globalRequest.key;
@@ -631,9 +643,9 @@ Widget verifyPlanUpdated() {
                 }else if (snapshot.hasData) {
                   return AlertDialog(
                     title: const Text(
-                        'Your preferences are saved'),
+                        'Preferences saved'),
                     content: const Text(
-                        'After your friends will complete the request, you will receive a notification'),
+                        'After your friends will complete the request, you will receive a notification.'),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () =>
@@ -750,7 +762,9 @@ Widget waitForRequestDetails(){
                                 child: const Icon(
                                     Icons.thumb_down,
                                     color: Colors
-                                        .white),
+                                        .white,
+                                  size: 40,
+                                ),
                               ),
                               secondaryBackground: Container(
                                 color: Colors.green,
@@ -759,7 +773,9 @@ Widget waitForRequestDetails(){
                                 child: const Icon(
                                     Icons.thumb_up,
                                     color: Colors
-                                        .white),
+                                        .white,
+                                  size: 40,
+                                ),
                               ),
                               child: Card(
                                 child: Container(
@@ -888,7 +904,8 @@ Widget waitForRequestDetails(){
     String userIdRequest = "";
     String userPhoneRequest = "";
     String userNameRequest = "";
-    Plan localPlan = Plan("", "", "", "", false, false, false, false, false, false, false,false,  false,false,false,false,false,false,false,false,false,false,"");
+    String userEmailRequest = "";
+    Plan localPlan = Plan("", "", "", "", false, false, false, false, false, false, false,false,  false,false,false,false,false,false,false,false,"");
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {
@@ -943,12 +960,6 @@ Widget waitForRequestDetails(){
               if(planLocal.child("isRelaxing").value!.toString()=="true") {
                 localPlan.isRelaxing = true;
               }
-              if(planLocal.child("isGroupTravel").value!.toString()=="true") {
-                localPlan.isGroupTravel = true;
-              }
-              if(planLocal.child("isSoloTravel").value!.toString()=="true") {
-                localPlan.isSoloTravel = true;
-              }
               localPlan.days = planLocal.child("days").value.toString();
                 localPlan.town = planLocal.child("departure").value!.toString();
               userIdRequest = planLocal.child("userId").value!.toString();
@@ -965,8 +976,9 @@ Widget waitForRequestDetails(){
                       .value!
                       .toString();
                   globalRequest.plan.add(localPlan);
-                  globalRequest.userName.add(userNameRequest);
-                  globalRequest.phoneNumber.add(userPhoneRequest);
+                  userEmailRequest = userLocal.child("email").value!.toString();
+                  UserClass user = UserClass(userLocal.key,userNameRequest,userEmailRequest,userPhoneRequest);
+                  globalRequest.user.add(user);
                 }
               }
             }
@@ -997,6 +1009,7 @@ Widget waitForRequestDetails(){
       return false;
     }
     _updateRequest();
+
     return true;
   }
   String getMessage(){
@@ -1063,14 +1076,8 @@ Widget waitForRequestDetails(){
         if(globalRequest.plan[i].isRelaxing && !msgRequest.contains("relax")) {
           msgRequest = "$msgRequest have relaxing activities ,";
         }
-        if(globalRequest.plan[i].isGroupTravel && !msgRequest.contains("group")) {
-          msgRequest = "$msgRequest is recommended for a group travel ,";
-        }
-        if(globalRequest.plan[i].isSoloTravel && !msgRequest.contains("solo")) {
-          msgRequest = "$msgRequest is recommended for a solo travel ,";
-        }
       }
-    String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Italy,Rome', that would fit a budget of $budget euro, for $days days, from $destination. I want the destination to: $msgRequest";
+    String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Rome,Italy', that would fit a budget of $budget euro, for $days days, from $destination. I want the destination to: $msgRequest";
     msg = "$msg. In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
    print(msg);
     return msg;

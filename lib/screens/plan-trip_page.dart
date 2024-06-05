@@ -34,8 +34,9 @@ class _PlanTripPageState extends State<PlanTripPage> {
   bool isRequestFinished = false;
   bool resultUpdated = true;
   String result = "";
-  double _currentSliderValue = 1;
+  double _currentSliderValue = 7;
   final _preferencesFormKey = GlobalKey<FormState>();
+  bool validator = true;
 
 
   @override
@@ -65,6 +66,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
       controller: controller,
       decoration: InputDecoration(
           labelText: title,
+        icon: const Icon(Icons.euro),
+          iconColor: Colors.yellow,
         labelStyle: const TextStyle(fontSize: 20.0 , color: Colors.black, fontStyle: FontStyle.normal)
       ),
     );
@@ -76,6 +79,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
       controller: controller,
       decoration: InputDecoration(
           labelText: title,
+          icon: const Icon(Icons.airplanemode_active_sharp),
+          iconColor: Colors.blue,
           labelStyle: const TextStyle(
               fontSize: 20.0, color: Colors.black, fontStyle: FontStyle.normal)
       ),
@@ -97,25 +102,34 @@ class _PlanTripPageState extends State<PlanTripPage> {
     return null;
   }
   Widget _nextButton() {
-    if (_selectedDateRange != null) {
-      plan.setPlanBudget(budgetController.text);
-      plan.setPlanTown(departureController.text);
-      plan.setPlanDate(_selectedDateRange!.toString());
-      plan.setPlanDays(_currentSliderValue.toString());
-    }
-    return TextButton(
+    return ElevatedButton(
         onPressed: () =>
             setState(() {
+              if (_selectedDateRange != null&&departureController.text.isNotEmpty&&_currentSliderValue.toString().isNotEmpty&&budgetController.toString().isNotEmpty) {
+                plan.setPlanBudget(budgetController.text);
+                plan.setPlanTown(departureController.text);
+                plan.setPlanDate(_selectedDateRange!.toString());
+                plan.setPlanDays(_currentSliderValue.abs().toString());
+
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const PreferencesScreen(),
-                              ),
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                    const PreferencesScreen(),
+                  ),
                 );
               }
+              else{
+                validator = false;
+              }
+              }
             ),
-        child: _text("Continue")
+        child: const Text("Continue", style:  TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'NotoSerif',
+            color: Color(0xff036d81)
+        ),)
     );
   }
   void scrollListToEND() {
@@ -127,8 +141,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
 
   Widget requestSend(BuildContext context) {
     return AlertDialog(
-      title: const Text('Request Send'),
-      content: const Text('The request has been sent to your friends'),
+      title: const Text('Done',style: TextStyle(color: Colors.black, fontSize: 18)),
+      content: const Text('The request has been sent',style: TextStyle(color: Colors.black, fontSize: 14)),
       actions: <Widget>[
         TextButton(
           onPressed: () {
@@ -143,7 +157,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
             }
             );
           },
-          child: const Text('Done'),
+          child: const Text('Continue',style: TextStyle(color: Colors.black, fontSize: 14)),
         ),
       ],
     );
@@ -161,9 +175,9 @@ class _PlanTripPageState extends State<PlanTripPage> {
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.date_range,color: Colors.black),
+          Icon(Icons.date_range,color: Color(0xff036d81)),
           // Adjust the spacing between icon and text as needed
-          Text(' Available period',style: TextStyle(color: Colors.black, fontSize: 20),),
+          Text(' Available period',style: TextStyle(color: Color(0xff036d81), fontSize: 20),),
         ],
       ),
     )
@@ -173,7 +187,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
   void _show() async {
     final DateTimeRange? result = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2024, 1, 1),
+      firstDate: DateTime(2024, 6, 6),
       lastDate: DateTime(2030, 12, 31),
       currentDate: DateTime.now(),
       saveText: 'Done',
@@ -212,8 +226,15 @@ class _PlanTripPageState extends State<PlanTripPage> {
                   const SizedBox(height: 80,),
                   _dateButton(),
                   const SizedBox(height: 80,),
-                  _text("Duration"),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _text("Duration"),
+                  ),
                   const SizedBox(height: 20,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(child:
                   Slider(
                     value: _currentSliderValue,
                     max: 21,
@@ -226,7 +247,16 @@ class _PlanTripPageState extends State<PlanTripPage> {
                       });
                     },
                   ),
-                  const SizedBox(height: 100),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: _text("days"),
+                      ),
+                  ]
+                  ),
+                  const SizedBox(height: 50),
+                  validator ? const Text(""):const Text("Please complete all the details",style: TextStyle(color: Colors.red, fontSize: 18),),
+                  const SizedBox(height: 50),
                   Align(
                     alignment: Alignment.bottomRight,
                     child: _nextButton(),

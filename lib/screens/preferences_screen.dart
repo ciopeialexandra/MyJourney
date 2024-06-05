@@ -81,8 +81,6 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       "isThermalSpa": plan.getPlanThermalSpa(),
       "isAdventure": plan.getPlanAdventure(),
       "isRelaxing": plan.getPlanRelaxing(),
-      "isGroupTravel": plan.getPlanGroupTravel(),
-      "isSoloTravel": plan.getPlanSoloTravel(),
       "requestId": request[requestIndex].key,
       "voted": "no"
     };
@@ -120,7 +118,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       "days": plan.getPlanDays(),
       "departure": plan.getPlanTown(),
       "isSki": plan.getPlanSki(),
-      "isCity": plan.getPlanCity(), //de adaugat verificari sa nu fie niciuna goala
+      "isCity": plan.getPlanCity(),
       "isHistorical": plan.getPlanHistorical(),
       "isBeach": plan.getPlanSwim(),
       "isNature": plan.getPlanNature(),
@@ -136,8 +134,6 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       "isThermalSpa": plan.getPlanThermalSpa(),
       "isAdventure": plan.getPlanAdventure(),
       "isRelaxing": plan.getPlanRelaxing(),
-      "isGroupTravel": plan.getPlanGroupTravel(),
-      "isSoloTravel": plan.getPlanSoloTravel(),
       "requestId": requestId,
       "voted": "no"
     });
@@ -147,6 +143,40 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         _createPlanContact(contacts[i].phones!.elementAt(0).value.toString());
       }
     }
+  }
+  void _createPlanSoloTrip() async{
+    var uuid = const Uuid().v1();
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userId = user?.uid;
+    DatabaseReference ref = FirebaseDatabase.instance.ref("plan/$uuid");
+    _createRequest();
+    globalRequestIdSoloTrip = requestId;
+    await ref.set({
+      "userId": userId,
+      "budget": plan.getPlanBudget(),
+      "date": plan.getPlanDate(),
+      "days": plan.getPlanDays(),
+      "departure": plan.getPlanTown(),
+      "isSki": plan.getPlanSki(),
+      "isCity": plan.getPlanCity(),
+      "isHistorical": plan.getPlanHistorical(),
+      "isBeach": plan.getPlanSwim(),
+      "isNature": plan.getPlanNature(),
+      "isSwim": plan.getPlanSwim(),
+      "isTropical": plan.getPlanTropical(),
+      "isShopping": plan.getPlanShopping(),
+      "isNightlife": plan.getPlanNightlife(),
+      "isUnique": plan.getPlanUnique(),
+      "isPopular": plan.getPlanPopular(),
+      "isLuxury": plan.getPlanLuxury(),
+      "isCruises": plan.getPlanCruises(),
+      "isRomantic": plan.getPlanRomantic(),
+      "isThermalSpa": plan.getPlanThermalSpa(),
+      "isAdventure": plan.getPlanAdventure(),
+      "isRelaxing": plan.getPlanRelaxing(),
+      "requestId": requestId,
+      "voted": "yes"
+    });
   }
   Future<String?> getUserIdByPhoneNumber(String phoneNumber) async {
     DatabaseReference ref = FirebaseDatabase.instance.reference();
@@ -202,7 +232,6 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     requestId = uuid;
     DatabaseReference ref = FirebaseDatabase.instance.ref("request/$uuid");
     await ref.set({
-      "finalResult": "",
       "status": "pending"
 
     });
@@ -250,14 +279,12 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       plan.setPlanThermalSpa(isPressedThermalSpa);
       plan.setPlanAdventure(isPressedAdventure);
       plan.setPlanRelaxing(isPressedRelaxing);
-      plan.setPlanGroupTravel(isPressedGroupTravel);
-      plan.setPlanSoloTravel(isPressedSoloTravel);
     }
-    return TextButton(
+    return ElevatedButton(
         onPressed: () =>
             setState(() {
               if(isPlanRequest == false && isFriendsTrip == false) {
-                _createPlan();
+                _createPlanSoloTrip();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -326,8 +353,8 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   }
   Widget requestPending(BuildContext context) {
     return AlertDialog(
-      title: const Text('Your trip preferences are saved'),
-      content: const Text("Not all your friends completed the trip details, you will get a notification when it's time to choose your destination"),
+      title: const Text('Preferences saved'),
+      content: const Text("Call your friends and tell them to hurry up."),
       actions: <Widget>[
         TextButton(
           onPressed: () {
@@ -349,8 +376,8 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   }
   Widget requestSend(BuildContext context) {
     return AlertDialog(
-      title: const Text('Request Send'),
-      content: const Text('The request has been sent to your friends'),
+      title: const Text('Request Sent'),
+      content: const Text('The request has been sent to your friends.'),
       actions: <Widget>[
         TextButton(
           onPressed: () {
@@ -373,7 +400,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   Widget requestFinished(BuildContext context) {
     return AlertDialog(
       title: const Text('Your trip preferences are saved'),
-      content: const Text('All your friends details are completed, choose your destination'),
+      content: const Text('All your friends details are completed, choose your destination.'),
       actions: <Widget>[
         TextButton(
           onPressed: () {
@@ -551,52 +578,6 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           Icon(Icons.favorite_sharp,color: Color(0xffff2828),),
           // Adjust the spacing between icon and text as needed
           Text(' Romantic',style:  TextStyle(
-              fontWeight: FontWeight.bold,
-              fontFamily: 'NotoSerif',
-              color: Color(0xff036d81))),
-        ],
-      ),
-    );
-  }
-  Widget _solotravelButton() {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          isPressedSoloTravel = !isPressedSoloTravel;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-          backgroundColor: isPressedSoloTravel ? const Color(0xffdbe8e8) : Colors.white
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.boy,color: Color(0xff92908f),),
-          // Adjust the spacing between icon and text as needed
-          Text(' Solo Travel',style:  TextStyle(
-              fontWeight: FontWeight.bold,
-              fontFamily: 'NotoSerif',
-              color: Color(0xff036d81))),
-        ],
-      ),
-    );
-  }
-  Widget _grouptravelButton() {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          isPressedGroupTravel = !isPressedGroupTravel;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-          backgroundColor: isPressedGroupTravel ? const Color(0xffdbe8e8) : Colors.white
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.group,color: Colors.black,),
-          // Adjust the spacing between icon and text as needed
-          Text(' Group Travel',style:  TextStyle(
               fontWeight: FontWeight.bold,
               fontFamily: 'NotoSerif',
               color: Color(0xff036d81))),
@@ -897,14 +878,14 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                 _relaxingButton(),
               ]
             ),
-                  Row(
+                  const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _grouptravelButton(),
-                        _solotravelButton(),
+                        // _grouptravelButton(),
+                        // _solotravelButton(),
                       ]
                   ),
-              const SizedBox(height: 100,),
+              const SizedBox(height: 200,),
               Align(
                 alignment: Alignment.bottomRight,
                 child: _nextButton(),
