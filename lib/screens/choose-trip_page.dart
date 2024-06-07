@@ -108,7 +108,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
             .value!
             .toString() == globalRequest.key
         ) {
-          Result resultData = Result("", "", ""," ");
+          Result resultData = Result("", "", ""," ","");
           resultData.key = resultLocal.key!;
           resultData.itinerary = resultLocal
               .child("itinerary")
@@ -154,7 +154,9 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
 
   void trimResult(){
     int idx = chatGptAnswer.indexOf("Itinerary");
-    parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx).trim()];
+    int idxBudgetSpending = chatGptAnswer.indexOf("Budget spending");
+    parts = [chatGptAnswer.substring(0,idx).trim(), chatGptAnswer.substring(idx).trim(), chatGptAnswer.substring(idxBudgetSpending-1)];
+
   }
   Future<bool> waitingForResult(String msg) async{
     for(int i=0;i<3;i++) {
@@ -166,8 +168,8 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         img =
         "A realistic picture portraying a trip to ${parts[0]} ";
         await generateImage();
-        resultList.add(Result(_generatedImageUrl, parts[1], parts[0],resultKey));
-        resultListCopy.add(Result(_generatedImageUrl, parts[1], parts[0],resultKey));
+        resultList.add(Result(_generatedImageUrl, parts[1], parts[0],resultKey,parts[2]));
+        resultListCopy.add(Result(_generatedImageUrl, parts[1], parts[0],resultKey,parts[2]));
         if (msgGlobal.contains("Except")) {
           msgGlobal = "$msgGlobal, ${parts[0]}";
         }
@@ -225,6 +227,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         "itinerary": result.itinerary,
         "cityAndCountry": result.cityAndCountry,
         "likes": result.numberOfLikes,
+        "budgetSpending":result.budgetSpending,
         "requestId": globalRequest.key
       });
   }
@@ -1078,8 +1081,11 @@ Widget waitForRequestDetails(){
         }
       }
     String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Rome,Italy', that would fit a budget of $budget euro, for $days days, from $destination. I want the destination to: $msgRequest";
-    msg = "$msg. In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
-   print(msg);
+    msg = "$msg. In this budget I want to include the transport plan and also the accommodation and travel expenses."
+        " If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far,"
+        " but the budget to fit it. And in the next line I want an itinerary for the trip, starting with the text Itinerary."
+        " Next after the the itinerary on a next line please provide the travel expenses, starting with the words: Budget spending."
+        " For both I want the answer to be on the following line";
     return msg;
   }
 }

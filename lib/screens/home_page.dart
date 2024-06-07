@@ -94,7 +94,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int> _isRequest() async {
-    //verifies if there are any trip requests for this user and returns their number
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     User? user = FirebaseAuth.instance.currentUser;
     notificationNumber = 0;
@@ -149,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                   .key.toString();
               favouriteResultNumber++;
               DataSnapshot snapshot = await ref.child('result').get();
-            Result result = Result("", "", "", "");
+            Result result = Result("", "", "", "","");
               for (var resultLocal in snapshot.children) {
                 if(resultLocal.child("requestId").value.toString() == requestId) {
                   if(resultLocal.child("likes").value.toString().compareTo(likes)>0) {
@@ -165,7 +164,8 @@ class _HomePageState extends State<HomePage> {
                         resultLocal
                             .child("cityAndCountry")
                             .value
-                            .toString(), resultId!);
+                            .toString(), resultId!,
+                        resultLocal.child("budgetSpending").value.toString());
                     likes = resultLocal.child("likes").value.toString();
                   }
                 }
@@ -467,7 +467,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  Card buildCard(String image,String itinerary, String cityAndCountry) {
+  Card buildCard(String image,String itinerary, String cityAndCountry,String budgetSpending) {
       var heading = cityAndCountry;
       var cardImage = NetworkImage(
           image);
@@ -501,6 +501,7 @@ class _HomePageState extends State<HomePage> {
                       globalCurrentTripImage = image;
                       globalCurrentCityAndCountry = cityAndCountry;
                       globalItinerary = itinerary;
+                      globalBudgetSpending = budgetSpending;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -698,7 +699,7 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     children: [
                       for(int i=0;i<favouriteResultList.length;i++)
-                       buildCard(favouriteResultList[i].image,favouriteResultList[i].itinerary,favouriteResultList[i].cityAndCountry),
+                       buildCard(favouriteResultList[i].image,favouriteResultList[i].itinerary,favouriteResultList[i].cityAndCountry,favouriteResultList[i].budgetSpending),
                     ],
                   )),
             );

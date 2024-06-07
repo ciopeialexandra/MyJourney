@@ -15,4 +15,5 @@ String globalRequestIdSoloTrip = "";
 String globalCurrentTripImage = "";
 String globalCurrentCityAndCountry = "";
 String globalItinerary = "";
+String globalBudgetSpending = "";
 Request globalRequest = Request("", List.empty(growable: true), List.empty(growable: true),"");

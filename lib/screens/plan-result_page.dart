@@ -31,7 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _generatedImageUrl = '';
   String chatGptAnswer = "";
   late List parts;
-  Result result=Result("", "", "", "");
+  Result result=Result("", "", "", "","");
   String resultId = "";
   late Future<bool> waitingForResultsFinished;
   late Uint8List downloadedImage ;
@@ -174,6 +174,7 @@ class _ChatScreenState extends State<ChatScreen> {
       "image": _generatedImageName,
       "itinerary": parts[1],
       "cityAndCountry": parts[0],
+      "budgetSpending": parts[2],
       "requestId": globalRequestIdSoloTrip
     });
     _createRequest();
@@ -195,12 +196,12 @@ class _ChatScreenState extends State<ChatScreen> {
       Reference ref = storage.ref().child('images/$_generatedImageName.jpg');
       UploadTask uploadTask = ref.putData(downloadedImage);
       await uploadTask.whenComplete(() {
-        print('File uploaded successfully');
+        log('File uploaded successfully');
       });
       String downloadUrl = await ref.getDownloadURL();
-      print('Download URL: $downloadUrl');
+      log('Download URL: $downloadUrl');
     } catch (e) {
-      print('Error uploading image: $e');
+      log('Error uploading image: $e');
     }
   }
   void _createRequest() async {
@@ -271,9 +272,11 @@ class _ChatScreenState extends State<ChatScreen> {
   void trimResult(){
     if(chatGptAnswer.contains("Itinerary")) {
       int idx = chatGptAnswer.indexOf("Itinerary");
+      int idxBudgetSpending = chatGptAnswer.indexOf("Budget spending");
       parts = [
         chatGptAnswer.substring(0, idx).trim(),
-        chatGptAnswer.substring(idx - 1).trim()
+        chatGptAnswer.substring(idx - 1).trim(),
+        chatGptAnswer.substring(idxBudgetSpending-1)
       ];
     }
     else{
@@ -417,7 +420,11 @@ class _ChatScreenState extends State<ChatScreen> {
       if(plan.isRelaxing) {
         msg = "$msg have relaxing activities,";
       }
-      msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses. If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far, but the budget to fit it. And in the next line I want an itinerary for the trip.";
+      msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses."
+          " If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far,"
+          " but the budget to fit it. And in the next line I want an itinerary for the trip, starting with the text Itinerary."
+          " Next after the the itinerary on a next line please provide the travel expenses, starting with the words: Budget spending."
+          " For both I want the answer to be on the following line";
       return msg;
   }
 }

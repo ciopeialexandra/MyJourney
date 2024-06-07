@@ -825,7 +825,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                   alignment: Alignment.topLeft,
                child:_text('Filters'),
                   ),
-                SizedBox(height: 60,),
+                const SizedBox(height: 60,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
