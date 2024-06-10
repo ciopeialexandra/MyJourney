@@ -64,6 +64,14 @@ class _DetailsScreenState extends State<DetailsScreen> {
     if(globalItinerary.contains("Itinerary:")) {
       globalItinerary = globalItinerary.substring(10).trim();
     }
+    if(globalItinerary.contains("Budget spending:")){
+      int idxBudgetSpending = globalItinerary.indexOf("Budget spending");
+      globalItinerary = globalItinerary.substring(0,idxBudgetSpending).trim();
+    }
+    if(globalBudgetSpending.contains("Budget spending:")){
+      int idxBudgetSpending = globalBudgetSpending.indexOf("Budget spending");
+      globalBudgetSpending = globalBudgetSpending.substring(idxBudgetSpending).trim();
+    }
     return Scaffold(
         appBar: AppBar(
           title: _title(),
@@ -145,6 +153,27 @@ class _DetailsScreenState extends State<DetailsScreen> {
                               children: [
                                 Text(
                                   globalItinerary,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ]
+                          )
+                      )
+                  ),
+                  Container(
+                      color: Colors.white,
+                      key: keyBudgetSpendingScreen,
+                      height: MediaQuery.of(context).size.height - kToolbarHeight,
+                      child: Padding(
+                          padding: const EdgeInsets.all(30),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  globalBudgetSpending,
                                   style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 18,

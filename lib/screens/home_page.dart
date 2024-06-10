@@ -166,11 +166,13 @@ class _HomePageState extends State<HomePage> {
                             .value
                             .toString(), resultId!,
                         resultLocal.child("budgetSpending").value.toString());
+                    print(result.cityAndCountry);
                     likes = resultLocal.child("likes").value.toString();
                   }
                 }
               }
               if(result.cityAndCountry.isNotEmpty) {
+                isDuplicate = false;
                 var imagePath = result.image;
                 result.image =
                 await storageRef.child("images/$imagePath.jpg").getDownloadURL();
@@ -723,7 +725,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 20), // Space between image and text
                       const Text(
-                        "No planned trips found",
+                        "No future trips found",
                         style:  TextStyle(
                           fontSize: 25,
                           fontWeight: FontWeight.normal,

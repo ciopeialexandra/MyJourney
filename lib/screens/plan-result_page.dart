@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -175,7 +174,8 @@ class _ChatScreenState extends State<ChatScreen> {
       "itinerary": parts[1],
       "cityAndCountry": parts[0],
       "budgetSpending": parts[2],
-      "requestId": globalRequestIdSoloTrip
+      "requestId": globalRequestIdSoloTrip,
+      "likes": "1"
     });
     _createRequest();
   }
@@ -323,7 +323,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         itineraryButton(),
-                                        _countryAndCityText(),
+                                        Flexible(
+                                          child: _countryAndCityText(),
+                                        ),
                                       ],
                                     )
                                     //Text(parts[1]),

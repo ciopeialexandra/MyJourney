@@ -21,18 +21,18 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   String? errorMessage = '';
-  final TextEditingController _controllerName = TextEditingController();
-  final TextEditingController _controllerEmail = TextEditingController();
-  final TextEditingController _controllerPassword = TextEditingController();
-  final TextEditingController _controllerTelephone = TextEditingController();
+  String email = "";
+  String phone = "";
+  String password = "";
+  String name = "";
   final _signupFormKey = GlobalKey<FormState>();
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
       // Attempt to create user account
       await Auth().createUserWithEmailAndPassword(
-        email: _controllerEmail.text,
-        password: _controllerPassword.text,
+        email: email,
+        password: password,
       );
       // If successful, clear any previous error message
       setState(() {
@@ -46,16 +46,13 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
   void _createUser() async{
-    String name = _controllerName.text;
-    String email = _controllerEmail.text;
-    String telephone = _controllerTelephone.text;
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
     DatabaseReference ref = FirebaseDatabase.instance.ref("user/$userId");
     await ref.set({
       "name": name,
       "email":email,
-      "telephone": telephone,
+      "telephone": phone,
     });
   }
   @override
@@ -86,6 +83,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             if(textValue == null || textValue.isEmpty) {
                               return 'Name field is required!';
                             }
+                            else{
+                              name = textValue;
+                            }
                             return null;
                           }
                       ),
@@ -101,6 +101,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             if(!EmailValidator.validate(textValue)) {
                               return 'Please enter a valid email';
                             }
+                            else {
+                              email = textValue;
+                            }
                             return null;
                           }
                       ),
@@ -112,6 +115,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           validator: (textValue) {
                             if(textValue == null || textValue.isEmpty) {
                               return 'Contact number is required!';
+                            }
+                            else{
+                              phone = textValue;
                             }
                             return null;
                           }
@@ -125,6 +131,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         validator: (textValue) {
                           if(textValue == null || textValue.isEmpty) {
                             return 'Password is required!';
+                          }
+                          else{
+                            password = textValue;
                           }
                           return null;
                         },

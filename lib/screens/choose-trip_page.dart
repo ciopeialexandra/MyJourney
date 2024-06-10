@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:myjorurney/screens/home_page.dart';
@@ -45,12 +45,17 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   late Future<void> waitPlanUpdate;
   int indexGlobal = 0;
   String  resultKeyParam = "";
+  late Uint8List downloadedImage ;
+  final List<String> _generatedImageName = List.empty(growable: true);
 
   @override
   void initState() {
     super.initState();
     areResultsGeneratedFuture = _areResultsAlreadyGenerated();
     if(areResultsGeneratedGlobal == false) {
+      for(int i=0;i<3;i++) {
+        _generatedImageName.add(const Uuid().v4());
+      }
       areRequestDetailsGenerated = _getRequestDetails();
       areRequestDetailsGenerated.then((result) {
         setState(() {
@@ -116,6 +121,10 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
               .toString();
           resultData.cityAndCountry = resultLocal.child("cityAndCountry").value.toString();
           resultData.image = resultLocal.child("image").value.toString();
+          final storageRef = FirebaseStorage.instance.ref();
+          var imagePath = resultData.image;
+          print("** $imagePath");
+          resultData.image = await storageRef.child("images/$imagePath.jpg").getDownloadURL();
           if (resultLocal
               .child("likes")
               .value
@@ -211,7 +220,6 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           'content': content,
         });
         chatGptAnswer = content;
-        print(chatGptAnswer);
       }
       log ('An internal error occurred');
     } catch (e) {
@@ -222,14 +230,42 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       var uuid = const Uuid().v1();
       DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
       resultKey = uuid;
+      String imageKey = await uploadImage(result.image);
       await ref.set({
-        "image": result.image,
+        "image": imageKey,
         "itinerary": result.itinerary,
         "cityAndCountry": result.cityAndCountry,
         "likes": result.numberOfLikes,
         "budgetSpending":result.budgetSpending,
         "requestId": globalRequest.key
       });
+  }
+  Future<Uint8List> downloadImage(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Failed to download image');
+    }
+  }
+  Future<String> uploadImage(String image) async {
+    String imgKey = const Uuid().v4();
+    if(image.isNotEmpty) {
+      downloadedImage = await downloadImage(image);
+    }
+    try {
+      FirebaseStorage storage = FirebaseStorage.instance;
+      Reference ref = storage.ref().child('images/$imgKey.jpg');
+      UploadTask uploadTask = ref.putData(downloadedImage);
+      await uploadTask.whenComplete(() {
+        log('File uploaded successfully');
+      });
+      String downloadUrl = await ref.getDownloadURL();
+      log('Download URL: $downloadUrl');
+    } catch (e) {
+      log('Error uploading image: $e');
+    }
+    return imgKey;
   }
   void _updateResult() async{
     if(areResultsGeneratedGlobal){
@@ -240,6 +276,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     String itinerary = "";
     String requestId = "";
     String image = "";
+    String budgetSpending = "";
     final Map<String, Map> updates = {};
     DatabaseReference ref = FirebaseDatabase.instance.reference();
     try {
@@ -251,6 +288,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           itinerary = resultLocal.child("itinerary").value.toString();
           requestId = resultLocal.child("requestId").value.toString();
           image = resultLocal.child("image").value.toString();
+          budgetSpending = resultLocal.child("budgetSpending").value.toString();
           if(resultLocal.child("likes").value!.toString().contains("0")) {
             numberOfLikes = 1;
 
@@ -268,6 +306,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         itinerary = resultList[indexGlobal].itinerary;
         requestId = globalRequest.key;
         image = resultList[indexGlobal].image;
+        budgetSpending = resultList[indexGlobal].budgetSpending;
         if(resultList[indexGlobal].numberOfLikes == 0) {
           numberOfLikes = 1;
         }
@@ -285,6 +324,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       "image": image,
       "itinerary": itinerary,
       "cityAndCountry": cityAndCountry,
+      "budgetSpending": budgetSpending,
       "likes": numberOfLikes,
       "requestId": requestId
     };
@@ -795,6 +835,11 @@ Widget waitForRequestDetails(){
                                           mainAxisAlignment: MainAxisAlignment
                                               .center,
                                           children: [
+                                            Center(
+                                              child: Text("Options left: $index", style: const TextStyle(
+                                                  fontSize: 20.0),),
+                                            ),
+                                            const SizedBox(height: 20,),
                                             Center(
                                               child: Image
                                                   .network(
