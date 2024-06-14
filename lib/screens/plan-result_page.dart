@@ -30,7 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _generatedImageUrl = '';
   String chatGptAnswer = "";
   late List parts;
-  Result result=Result("", "", "", "","");
+  Result result=Result("", "", "", "","","");
   String resultId = "";
   late Future<bool> waitingForResultsFinished;
   late Uint8List downloadedImage ;
@@ -169,12 +169,16 @@ class _ChatScreenState extends State<ChatScreen> {
     var uuid = const Uuid().v1();
     DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
     resultId = uuid;
+    List<String> planDate = List.empty(growable: true);
+    planDate.add(plan.date);
+    result.calcFinalDate(planDate,plan.days);
     await ref.set({
       "image": _generatedImageName,
       "itinerary": parts[1],
       "cityAndCountry": parts[0],
       "budgetSpending": parts[2],
       "requestId": globalRequestIdSoloTrip,
+      "finalDate": result.finalDate,
       "likes": "1"
     });
     _createRequest();
@@ -396,7 +400,7 @@ class _ChatScreenState extends State<ChatScreen> {
         msg = "$msg have mountains,";
       }
       if(plan.isNature){
-        msg = "$msg be in the nature,";
+        msg = "$msg have natural parks near by,";
       }
       if(plan.isUnique) {
         msg = "$msg is a unique place, not that popular as other destinations,";
@@ -422,10 +426,10 @@ class _ChatScreenState extends State<ChatScreen> {
       if(plan.isRelaxing) {
         msg = "$msg have relaxing activities,";
       }
-      msg = "${msg}In this budget I want to include the transport plan and also the accommodation and travel expenses."
+      msg = "${msg}In this budget I want to include the transport plan (including the flight) and also the accommodation and travel expenses."
           " If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far,"
-          " but the budget to fit it. And in the next line I want an itinerary for the trip, starting with the text Itinerary."
-          " Next after the the itinerary on a next line please provide the travel expenses, starting with the words: Budget spending."
+          " but the budget to fit it. And in the next line I want a detailed itinerary for the trip, starting with the text Itinerary."
+          " Next after the the itinerary on a next line please provide the detailed travel expenses, starting with the words: Budget spending."
           " For both I want the answer to be on the following line";
       return msg;
   }

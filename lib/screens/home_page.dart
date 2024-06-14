@@ -29,7 +29,6 @@ class _HomePageState extends State<HomePage> {
   int notificationNumber = 0;
   int numberOfRequests = 0;
   int currentPageIndex = 0;
-  List<String> pages = ["Chat", "Search", "History", "Notification", "Profile"];
   late Future<bool> areResultsGeneratedFuture;
   List<Result> favouriteResultList = List.empty(growable: true);
   late Future<int> areFavouritesFound;
@@ -148,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                   .key.toString();
               favouriteResultNumber++;
               DataSnapshot snapshot = await ref.child('result').get();
-            Result result = Result("", "", "", "","");
+            Result result = Result("", "", "", "","","");
               for (var resultLocal in snapshot.children) {
                 if(resultLocal.child("requestId").value.toString() == requestId) {
                   if(resultLocal.child("likes").value.toString().compareTo(likes)>0) {
@@ -165,8 +164,7 @@ class _HomePageState extends State<HomePage> {
                             .child("cityAndCountry")
                             .value
                             .toString(), resultId!,
-                        resultLocal.child("budgetSpending").value.toString());
-                    print(result.cityAndCountry);
+                        resultLocal.child("budgetSpending").value.toString(),resultLocal.child("finalDate").value.toString());
                     likes = resultLocal.child("likes").value.toString();
                   }
                 }
@@ -469,7 +467,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  Card buildCard(String image,String itinerary, String cityAndCountry,String budgetSpending) {
+  Card buildCard(String image,String itinerary, String cityAndCountry,String budgetSpending,String finalDate) {
       var heading = cityAndCountry;
       var cardImage = NetworkImage(
           image);
@@ -502,6 +500,7 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       globalCurrentTripImage = image;
                       globalCurrentCityAndCountry = cityAndCountry;
+                      globalFinalDate = finalDate;
                       globalItinerary = itinerary;
                       globalBudgetSpending = budgetSpending;
                       Navigator.push(
@@ -701,7 +700,7 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     children: [
                       for(int i=0;i<favouriteResultList.length;i++)
-                       buildCard(favouriteResultList[i].image,favouriteResultList[i].itinerary,favouriteResultList[i].cityAndCountry,favouriteResultList[i].budgetSpending),
+                       buildCard(favouriteResultList[i].image,favouriteResultList[i].itinerary,favouriteResultList[i].cityAndCountry,favouriteResultList[i].budgetSpending,favouriteResultList[i].finalDate),
                     ],
                   )),
             );

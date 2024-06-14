@@ -14,6 +14,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   final GlobalKey keyFirstScreen = GlobalKey();
   final GlobalKey keyItineraryScreen = GlobalKey();
   final GlobalKey keyBudgetSpendingScreen = GlobalKey();
+
   Widget _title() {
     return const Text('My Journey');
   }
@@ -61,10 +62,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if(globalItinerary.contains("Itinerary:")) {
+    if(globalItinerary.contains("Itinerary")) {
       globalItinerary = globalItinerary.substring(10).trim();
     }
-    if(globalItinerary.contains("Budget spending:")){
+    if(globalItinerary.contains("Budget spending")){
       int idxBudgetSpending = globalItinerary.indexOf("Budget spending");
       globalItinerary = globalItinerary.substring(0,idxBudgetSpending).trim();
     }
@@ -114,6 +115,14 @@ class _DetailsScreenState extends State<DetailsScreen> {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              globalFinalDate,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
