@@ -18,3 +18,4 @@ String globalItinerary = "";
 String globalBudgetSpending = "";
 String globalFinalDate = "";
 Request globalRequest = Request("", List.empty(growable: true), List.empty(growable: true),"");
+String previousGeneratedResultsSoloTrip = "";

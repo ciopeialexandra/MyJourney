@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -42,7 +43,7 @@ class _HomePageState extends State<HomePage> {
   }
   Future<bool> _areResultsAlreadyGenerated() async {
     //verifies if there are results already generated
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshotResult = await ref.child('result').get();
       for (var resultLocal in snapshotResult.children) {
@@ -62,6 +63,7 @@ class _HomePageState extends State<HomePage> {
   }
   Future<void> signOut() async {
     await Auth().signOut();
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Widget _title() {
@@ -93,7 +95,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int> _isRequest() async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
     notificationNumber = 0;
     try {
@@ -119,7 +121,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int> _isFavourite() async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
     String? resultId = "";
     bool isDuplicate = false;
@@ -195,7 +197,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<int> _areRequestDetailsCompleted() async {
     //verifies if there are any trip requests for this user and returns their number
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
     int requestParticipants = 0;
     int requestDetailsCompletedNumber = 0;
@@ -262,10 +264,11 @@ class _HomePageState extends State<HomePage> {
 
   Widget _planButton() {
     Size size = MediaQuery.of(context).size;
+    previousGeneratedResultsSoloTrip = "";
     return Container(
-        width: size.width * 0.8,
+        width: size.width * 0.5,
         decoration: BoxDecoration(
-        color: const Color(0xffdbe8e8),
+        color: const Color(0xff05cece),
     borderRadius: BorderRadius.circular(26),
     ),
     child: TextButton(
@@ -353,7 +356,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<Request>> _setRequestDetails() async{
     //verifies if there are any trip requests for this user and adds their details to a list
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
     String requestId = "";
     String userIdRequest = "";
@@ -467,6 +470,25 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+  Widget itineraryButton() {
+    return TextButton(
+      onPressed: () {
+        setState(() {
+        });
+      },
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.place,
+            size: 25.0,
+            color: Colors.blueAccent,
+          ),
+        ],
+      ),
+    );
+  }
   Card buildCard(String image,String itinerary, String cityAndCountry,String budgetSpending,String finalDate) {
       var heading = cityAndCountry;
       var cardImage = NetworkImage(
@@ -478,7 +500,15 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               ListTile(
-                title: Text(heading),
+                title:    Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Align( alignment: Alignment.bottomLeft,child: itineraryButton(),),
+              Align( alignment: Alignment.bottomLeft,child: Flexible(
+                child: Text(heading),
+              ),)
+            ],
+          ),
                 //trailing: Icon(Icons.favorite_outline),
               ),
               SizedBox(
@@ -496,7 +526,7 @@ class _HomePageState extends State<HomePage> {
               ButtonBar(
                 children: [
                   TextButton(
-                    child: const Text('See more'),
+                    child: const Text('See more', style: TextStyle(color: Color(0xff036d81)),),
                     onPressed: () {
                       globalCurrentTripImage = image;
                       globalCurrentCityAndCountry = cityAndCountry;

@@ -31,69 +31,55 @@ class _AddFriendPageState extends State<AddFriendPage> {
   }
 
   filterContacts(){
-    List<Contact> _contacts = [];
-    _contacts.addAll(contacts);
+    List<Contact> contactsLocal = [];
+    contactsLocal.addAll(contacts);
     if(searchController.text.isNotEmpty){
-      _contacts.retainWhere((contact) {
+      contactsLocal.retainWhere((contact) {
         String searchTerm = searchController.text.toLowerCase();
         String contactName = contact.displayName!.toLowerCase();
         return contactName.contains(searchTerm);
       });
       setState(() {
-        contactsFiltered = _contacts;
+        contactsFiltered = contactsLocal;
       });
     }
   }
   getAllContacts() async{
-    List<Contact> _contacts = await ContactsService.getContacts();
+    List<Contact> contactsLocal = await ContactsService.getContacts();
     setState(() {
-      contacts = _contacts;
+      contacts = contactsLocal;
     });
-  }
-  Widget _animatedText(){
-    return DefaultTextStyle(
-      style: const TextStyle(
-          fontSize: 30.0,
-          color: Colors.black
-      ),
-      child: AnimatedTextKit(
-        animatedTexts : [
-          TyperAnimatedText('Invite friends'),
-        ],
-        isRepeatingAnimation: false,
-      ),
-    );
   }
   Widget _nextButton() {
     for (int i = 0; i < contacts.length; i++) {
       if (isSelected[i] == true) {
         isFriendsTrip = true;
       }
-    }Size size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width * 0.8,
-      decoration: BoxDecoration(
-        color: const Color(0xffdbe8e8),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: TextButton(
-      onPressed: () {
-        setState(() {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-              const PlanTripPage(),
-            ),
-          );
-        });
-      },
-      child: const Text('Next', style: TextStyle(color: Colors.black, fontSize: 18)),
-    )
+    }
+    return ElevatedButton(
+        onPressed: () {
+          setState(() {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                const PlanTripPage(),
+              ),
+            );
+          });
+        },
+        child: const Text("Continue", style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'NotoSerif',
+            color: Color(0xff036d81)
+        ),)
     );
   }
 
-
+  Widget _title() {
+    return const Text("My Journey");
+  }
   @override
   Widget build(BuildContext context) {
     bool isSearching = searchController.text.isNotEmpty;
@@ -102,7 +88,8 @@ class _AddFriendPageState extends State<AddFriendPage> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: _animatedText(),
+        title: _title(),
+        backgroundColor: const Color(0xffdbe8e8),
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
@@ -154,9 +141,10 @@ class _AddFriendPageState extends State<AddFriendPage> {
             },
           ),
         ),
+           const SizedBox(height: 10,),
            Expanded(
                child: Align(
-                 alignment: Alignment.bottomCenter,
+                 alignment: Alignment.bottomRight,
                  child: _nextButton(),
                ),
            ),

@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:myjorurney/auth.dart';
 import 'package:myjorurney/screens/login_page.dart';
 import 'package:myjorurney/screens/home_page.dart';
 
@@ -22,9 +22,17 @@ class _WidgetTreeState extends State<WidgetTree> {
           else{
             return const LoginPage();
           }
+
         },
     );
   }
 }
 
+class Auth {
+  // Assuming you have a Stream that notifies about auth state changes.
+  Stream<User?> get authStateChange => FirebaseAuth.instance.authStateChanges();
 
+  Future<void> signOut() async {
+    await FirebaseAuth.instance.signOut();
+  }
+}

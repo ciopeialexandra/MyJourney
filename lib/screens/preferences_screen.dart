@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/plan-result_page.dart';
 import 'package:uuid/uuid.dart';
@@ -85,7 +84,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       "voted": "no"
     };
     final Map<String, Map> updates = {};
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {
@@ -179,7 +178,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     });
   }
   Future<String?> getUserIdByPhoneNumber(String phoneNumber) async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('user').get();
       for (var phoneLocal in snapshot.children) {
@@ -237,7 +236,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     });
   }
   Future<bool> verifyIsRequestFinished() async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {
@@ -329,7 +328,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
             ),
 
         child: const Text("Continue", style:  TextStyle(
-            fontSize: 25,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             fontFamily: 'NotoSerif',
           color: Color(0xff036d81)

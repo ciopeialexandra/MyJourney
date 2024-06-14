@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/screens/preferences_screen.dart';
+import '../common/page_header.dart';
 import '../data/globals.dart';
 import 'home_page.dart';
 
@@ -67,7 +68,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
       decoration: InputDecoration(
           labelText: title,
         icon: const Icon(Icons.euro),
-          iconColor: Colors.yellow,
+          iconColor: Colors.green,
         labelStyle: const TextStyle(fontSize: 20.0 , color: Colors.black, fontStyle: FontStyle.normal)
       ),
     );
@@ -87,7 +88,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
     );
   }
   Future<String?> getUserIdByPhoneNumber(String phoneNumber) async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('user').get();
       for (var phoneLocal in snapshot.children) {
@@ -125,7 +126,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
               }
             ),
         child: const Text("Continue", style:  TextStyle(
-            fontSize: 25,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             fontFamily: 'NotoSerif',
             color: Color(0xff036d81)
@@ -164,13 +165,10 @@ class _PlanTripPageState extends State<PlanTripPage> {
   }
   Widget _dateButton() {
     Size size = MediaQuery.of(context).size;
-    return  Container(
-        width: size.width * 0.8,
-        decoration: BoxDecoration(
-        color: const Color(0xffdbe8e8),
-    borderRadius: BorderRadius.circular(26),
-    ),
-    child: TextButton(
+    return  SizedBox(
+        width: size.width * 0.7,
+
+    child: ElevatedButton(
       onPressed: _show,
       child: const Row(
         mainAxisSize: MainAxisSize.min,
@@ -219,18 +217,18 @@ class _PlanTripPageState extends State<PlanTripPage> {
               key: _preferencesFormKey,
               child: Column(
                 children: [
-                  const SizedBox(height: 80,),
-                  _entryFieldNumber("Your budget", budgetController),
-                  const SizedBox(height: 60,),
+                  const PageHeader(),
+                  _entryFieldNumber("Budget", budgetController),
+                  const SizedBox(height: 30,),
                   _entryFieldText("Place of departure", departureController),
-                  const SizedBox(height: 80,),
+                  const SizedBox(height: 40,),
                   _dateButton(),
-                  const SizedBox(height: 80,),
+                  const SizedBox(height: 30,),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: _text("Duration"),
                   ),
-                  const SizedBox(height: 20,),
+                  const SizedBox(height: 30,),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -254,9 +252,9 @@ class _PlanTripPageState extends State<PlanTripPage> {
                       ),
                   ]
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 20),
                   validator ? const Text(""):const Text("Please complete all the details",style: TextStyle(color: Colors.red, fontSize: 18),),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.bottomRight,
                     child: _nextButton(),

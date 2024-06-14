@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -20,7 +22,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<List<Request>> _setRequestDetails() async{
     //verifies if there are any trip requests for this user and adds their details to a list
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
     String requestId = "";
     String userIdRequest = "";
@@ -63,7 +65,6 @@ class _NotificationPageState extends State<NotificationPage> {
           localPlan.days = planLocal.child("days").toString();
           localPlan.date = planLocal.child("date").toString();
           localPlan.budget = planLocal.child("budget").toString();
-          print("a");
           if (planLocal.child("isBeach").toString() == "true") {
             localPlan.isSwimming = true;
           }
@@ -117,7 +118,7 @@ class _NotificationPageState extends State<NotificationPage> {
         }
       }
     } catch (error) {
-      print(error);
+      log(error.toString());
     }
     return request;
   }

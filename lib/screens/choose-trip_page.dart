@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:typed_data';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -106,7 +107,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   }
   Future<bool> _areResultsAlreadyGenerated() async {
     //verifies if there are results already generated
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshotResult = await ref.child('result').get();
       for (var resultLocal in snapshotResult.children) {
@@ -161,7 +162,26 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     }
     return false;
   }
+  Widget itineraryButton() {
+    return TextButton(
+      onPressed: () {
+        setState(() {
+        });
+      },
 
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            Icons.place,
+            size: 40.0,
+            color: Colors.blueAccent,
+          ),
+        ],
+      ),
+    );
+  }
   void trimResult(){
     int idx = chatGptAnswer.indexOf("Itinerary");
     int idxBudgetSpending = chatGptAnswer.indexOf("Budget spending");
@@ -235,7 +255,6 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
       DatabaseReference ref = FirebaseDatabase.instance.ref("result/$uuid");
       resultKey = uuid;
       String imageKey = await uploadImage(result.image);
-      print("**235 ${result.numberOfLikes}");
       await ref.set({
         "image": imageKey,
         "itinerary": result.itinerary,
@@ -285,7 +304,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     String budgetSpending = "";
     String finalDate = "";
     final Map<String, Map> updates = {};
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('result').get();
       for (var resultLocal in snapshot.children) {
@@ -329,7 +348,6 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     }catch (error) {
       log(error.toString());
     }
-    print("**329 ${numberOfLikes}");
     final postData = {
       "image": image,
       "itinerary": itinerary,
@@ -349,7 +367,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     User? user = FirebaseAuth.instance.currentUser;
     String? userId = user?.uid;
     final Map<String, Map> updates = {};
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planIterator in snapshot.children) {
@@ -497,7 +515,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     );
   }
   void _updateRequest() async{
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     String likesNumber = "0";
     try {
       DataSnapshot snapshot = await ref.child('result').get();
@@ -521,6 +539,20 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     String key = globalRequest.key;
     updates["request/$key"] = postData;
     return FirebaseDatabase.instance.ref().update(updates);
+  }
+  Widget _countryAndCityText(String text){
+    return DefaultTextStyle(
+      style: const TextStyle(
+          fontSize: 30.0,
+          color: Colors.black87
+      ),
+      child: AnimatedTextKit(
+        animatedTexts : [
+          TyperAnimatedText(text),
+        ],
+        isRepeatingAnimation: false,
+      ),
+    );
   }
   @override
   Widget build(BuildContext context) {
@@ -598,11 +630,15 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
                                                           .image),
                                                 ),
                                                 Center(
-                                                  child: Text(
-                                                    card.cityAndCountry,
-                                                    style: const TextStyle(
-                                                        fontSize: 30.0),
-                                                  ),
+                                                  child:  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      itineraryButton(),
+                                                      Flexible(
+                                                        child: _countryAndCityText(card.cityAndCountry),
+                                                      ),
+                                                    ],
+                                                  )
                                                 ),
                                               ]
                                           ),
@@ -865,12 +901,15 @@ Widget waitForRequestDetails(){
                                                       .image),
                                             ),
                                             Center(
-                                              child: Text(
-                                                card
-                                                    .cityAndCountry,
-                                                style: const TextStyle(
-                                                    fontSize: 30.0),
-                                              ),
+                                                child:  Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    itineraryButton(),
+                                                    Flexible(
+                                                      child: _countryAndCityText(card.cityAndCountry),
+                                                    ),
+                                                  ],
+                                                )
                                             ),
                                           ]
                                       ),
@@ -966,7 +1005,7 @@ Widget waitForRequestDetails(){
               });
           }
   Future<bool> _getRequestDetails() async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     String userIdRequest = "";
     String userPhoneRequest = "";
     String userNameRequest = "";
@@ -1059,7 +1098,7 @@ Widget waitForRequestDetails(){
     return true;
   }
   Future<bool> _getRequestStatus() async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference();
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {

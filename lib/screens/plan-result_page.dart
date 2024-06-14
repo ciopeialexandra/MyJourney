@@ -141,6 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return TextButton(
         onPressed: () {
           setState(() {
+            previousGeneratedResultsSoloTrip = "${previousGeneratedResultsSoloTrip + parts[0]},";
             isPlanRequest = true;
             Navigator.push(
                 context,
@@ -430,7 +431,7 @@ class _ChatScreenState extends State<ChatScreen> {
           " If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far,"
           " but the budget to fit it. And in the next line I want a detailed itinerary for the trip, starting with the text Itinerary."
           " Next after the the itinerary on a next line please provide the detailed travel expenses, starting with the words: Budget spending."
-          " For both I want the answer to be on the following line";
+          " For both I want the answer to be on the following line. Please exclude the $previousGeneratedResultsSoloTrip";
       return msg;
   }
 }
