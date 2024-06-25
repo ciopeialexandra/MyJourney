@@ -127,14 +127,15 @@ class _ChatScreenState extends State<ChatScreen> {
         });
         chatGptAnswer = content;
       }
-      log ('An internal error occurred');
     } catch (e) {
       log (e.toString());
+      parts[0] = "No result found";
+      parts[1] = "Please try again";
     }
   }
 
   Widget _title() {
-    return const Text('My Journey');
+    return const Text('TripSync');
   }
 
   Widget refreshButton() {
@@ -378,55 +379,25 @@ class _ChatScreenState extends State<ChatScreen> {
         curve: Curves.easeOut);
   }
   String getMessage(){
-      String msg = "Can you tell me a country and a city separated with a comma, just like this: 'Rome,Italy', that would fit a budget of ${plan.getPlanBudget()} euro, for ${plan.days} days, from ${plan.town}. I want the destination to: ";
-      if(plan.isShopping){
-        msg = "$msg have places to go shopping,";
-      }
-      if(plan.isSwimming){
-        msg = "$msg have beaches where you can swim close by,";
-      }
-      if(plan.isHistoricalHeritage){
-        msg = "$msg have historical attractions,";
-      }
-      if(plan.isBigCity){
-        msg = "$msg be a big city,";
-      }
-      if(plan.isTropical){
-        msg = "$msg be a tropical place,";
-      }
-      if(plan.isNightlife){
-        msg = "$msg have a wonderful nightlife with a lot of parties and fun,";
-      }
-      if(plan.isSkiing){
-        msg = "$msg have mountains,";
-      }
-      if(plan.isNature){
-        msg = "$msg have natural parks near by,";
-      }
-      if(plan.isUnique) {
-        msg = "$msg is a unique place, not that popular as other destinations,";
-      }
-      if(plan.isPopular) {
-        msg = "$msg is a popular destination,";
-      }
-      if(plan.isLuxury) {
-        msg = "$msg is a luxury destination,";
-      }
-      if(plan.isCruises) {
-        msg = "$msg go on a cruise,";
-      }
-      if(plan.isRomantic) {
-        msg = "$msg is a romantic destination,";
-      }
-      if(plan.isThermalSpa) {
-        msg = "$msg have a thermal spa,";
-      }
-      if(plan.isAdventure) {
-        msg = "$msg have adventure activities,";
-      }
-      if(plan.isRelaxing) {
-        msg = "$msg have relaxing activities,";
-      }
+      String msg = "Can you tell me a country and a city separated with a comma, just like this:"
+          " 'Rome,Italy', that would fit a budget of ${plan.getPlanBudget()} euro, for ${plan.days} days, "
+          "from ${plan.town}. I want the destination to: ";
+      if(plan.isShopping){msg = "$msg have places to go shopping,";}
+      if(plan.isSwimming){msg = "$msg have beaches where you can swim close by,";}
+      if(plan.isHistoricalHeritage){msg = "$msg have historical attractions,";}
+      if(plan.isBigCity){msg = "$msg be a big city,";}
+      if(plan.isTropical){msg = "$msg be a tropical place,";}
+      if(plan.isNightlife){msg = "$msg have a wonderful nightlife with a lot of parties and fun,";}
+      if(plan.isSkiing){msg = "$msg have mountains,";}
+      if(plan.isNature){msg = "$msg have natural parks near by,";}
+      if(plan.isUnique) {msg = "$msg is a unique place, not that popular as other destinations,";}
+      if(plan.isPopular) {msg = "$msg is a popular destination,";}
+      if(plan.isLuxury) {msg = "$msg is a luxury destination,";}
+      if(plan.isCruises) {msg = "$msg go on a cruise,";}
+      if(plan.isRomantic) {msg = "$msg is a romantic destination,";}
+      if(plan.isThermalSpa) {msg = "$msg have a thermal spa,";}
+      if(plan.isAdventure) {msg = "$msg have adventure activities,";}
+      if(plan.isRelaxing) {msg = "$msg have relaxing activities,";}
       msg = "${msg}In this budget I want to include the transport plan (including the flight) and also the accommodation and travel expenses."
           " If the period is short please recommend something close. If the period is 7 or 10 days recommend a place far,"
           " but the budget to fit it. And in the next line I want a detailed itinerary for the trip, starting with the text Itinerary."

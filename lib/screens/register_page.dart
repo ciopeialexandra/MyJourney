@@ -24,22 +24,20 @@ class _RegisterPageState extends State<RegisterPage> {
   String email = "";
   String phone = "";
   String password = "";
+
   String name = "";
   final _signupFormKey = GlobalKey<FormState>();
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
-      // Attempt to create user account
       await Auth().createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // If successful, clear any previous error message
       setState(() {
         errorMessage = '';
       });
     } on FirebaseAuthException catch (e) {
-      // If an error occurs, update errorMessage with the error message
       setState(() {
         errorMessage = e.message;
       });

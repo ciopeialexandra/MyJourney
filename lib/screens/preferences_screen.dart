@@ -37,8 +37,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   bool isPressedThermalSpa = false;
   bool isPressedAdventure = false;
   bool isPressedRelaxing = false;
-  bool isPressedGroupTravel = false;
-  bool isPressedSoloTravel = false;
+  bool filtersValidator = true;
 
   @override
   void initState() {
@@ -282,47 +281,59 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     return ElevatedButton(
         onPressed: () =>
             setState(() {
-              if(isPlanRequest == false && isFriendsTrip == false) {
-                _createPlanSoloTrip();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                    const ChatScreen(),
-                  ),
-                );
+              filtersValidator = true;
+              if (isPressedBeach || isPressedMountain || isPressedNature ||
+                  isPressedAttractions ||
+                  isPressedCity || isPressedTropical || isPressedShopping ||
+                  isPressedNightlife || isPressedUnique
+                  || isPressedPopular || isPressedLuxury || isPressedCruises ||
+                  isPressedRomantic || isPressedThermalSpa
+                  || isPressedAdventure || isPressedRelaxing) {
+                if (isPlanRequest == false && isFriendsTrip == false) {
+                  _createPlanSoloTrip();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                      const ChatScreen(),
+                    ),
+                  );
+                }
+                if (isPlanRequest == true && isFriendsTrip == false) {
+                  _updatePlan();
+                  waitVerifyRequestFinished();
+                  // if(isRequestFinished) {
+                  //   resultUpdated = false;
+                  //  _updateRequest();
+                  //   showDialog(
+                  //       context: context,
+                  //       builder: (BuildContext context) {
+                  //         return requestFinished(context);
+                  //       }
+                  //   );
+                  // }
+                  // else{
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return requestPending(context);
+                      }
+                  );
+                  //}
+                }
+                else if (isFriendsTrip == true) {
+                  _createPlan();
+                  // Show the AlertDialog
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return requestSend(context);
+                      }
+                  );
+                }
               }
-              if(isPlanRequest == true && isFriendsTrip==false){
-                _updatePlan();
-                waitVerifyRequestFinished();
-                // if(isRequestFinished) {
-                //   resultUpdated = false;
-                //  _updateRequest();
-                //   showDialog(
-                //       context: context,
-                //       builder: (BuildContext context) {
-                //         return requestFinished(context);
-                //       }
-                //   );
-                // }
-                // else{
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return requestPending(context);
-                    }
-                );
-                //}
-              }
-              else if(isFriendsTrip == true){
-                _createPlan();
-                // Show the AlertDialog
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return requestSend(context);
-                    }
-                );
+              else {
+                filtersValidator = false;
               }
             }
             ),
@@ -800,7 +811,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     );
   }
   Widget _title() {
-    return const Text("My Journey");
+    return const Text("TripSync");
   }
   @override
   Widget build(BuildContext context) {
@@ -884,7 +895,9 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                         // _solotravelButton(),
                       ]
                   ),
-              const SizedBox(height: 200,),
+              const SizedBox(height: 100,),
+              filtersValidator ? const Text("") : const Text("Please select at least one filter",style: TextStyle(color: Colors.red, fontSize: 18),),
+              const SizedBox(height: 100,),
               Align(
                 alignment: Alignment.bottomRight,
                 child: _nextButton(),

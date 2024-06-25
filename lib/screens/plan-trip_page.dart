@@ -38,6 +38,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
   double _currentSliderValue = 7;
   final _preferencesFormKey = GlobalKey<FormState>();
   bool validator = true;
+  bool validatorBudget = true;
+  bool validatorDays = true;
 
 
   @override
@@ -47,7 +49,7 @@ class _PlanTripPageState extends State<PlanTripPage> {
 
 
   Widget _title() {
-    return const Text("My Journey");
+    return const Text("TripSync");
   }
 
   Widget _text(String text) {
@@ -106,7 +108,10 @@ class _PlanTripPageState extends State<PlanTripPage> {
     return ElevatedButton(
         onPressed: () =>
             setState(() {
-              if (_selectedDateRange != null&&departureController.text.isNotEmpty&&_currentSliderValue.toString().isNotEmpty&&budgetController.toString().isNotEmpty) {
+              validator = true;
+              validatorBudget = true;
+              validatorBudget = true;
+              if (_selectedDateRange != null&&departureController.text.isNotEmpty&&_currentSliderValue.toString().isNotEmpty&&budgetController.toString().isNotEmpty&&int.parse(budgetController.text) > 199 &&int.parse(budgetController.text)/_currentSliderValue >=50) {
                 plan.setPlanBudget(budgetController.text);
                 plan.setPlanTown(departureController.text);
                 plan.setPlanDate(_selectedDateRange!.toString());
@@ -121,7 +126,15 @@ class _PlanTripPageState extends State<PlanTripPage> {
                 );
               }
               else{
-                validator = false;
+                if(_selectedDateRange == null || departureController.text.isEmpty||_currentSliderValue.toString().isEmpty){
+                  validator = false;
+                }
+               else if(int.parse(budgetController.text)/_currentSliderValue <50) {
+                  validatorDays = false;
+                }
+               else{
+                  validatorBudget = false;
+                }
               }
               }
             ),
@@ -254,6 +267,8 @@ class _PlanTripPageState extends State<PlanTripPage> {
                   ),
                   const SizedBox(height: 20),
                   validator ? const Text(""):const Text("Please complete all the details",style: TextStyle(color: Colors.red, fontSize: 18),),
+                  validatorBudget ? const Text(""):const Text("Please provide a budget of at least 200€",style: TextStyle(color: Colors.red, fontSize: 18),),
+                  validatorDays ? const Text(""):const Text("Please provide a budget at least of 50€ per day",style: TextStyle(color: Colors.red, fontSize: 18),),
                   const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.bottomRight,

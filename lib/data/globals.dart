@@ -1,3 +1,4 @@
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:myjorurney/data/plan.dart';
 import 'package:myjorurney/data/request.dart';
 
@@ -19,3 +20,5 @@ String globalBudgetSpending = "";
 String globalFinalDate = "";
 Request globalRequest = Request("", List.empty(growable: true), List.empty(growable: true),"");
 String previousGeneratedResultsSoloTrip = "";
+//Trace soloTripTrace = FirebasePerformance.instance.newTrace('solotrip-trace');
+Trace twoUsersTripTrace = FirebasePerformance.instance.newTrace('twouserstrip-trace');

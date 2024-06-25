@@ -21,6 +21,8 @@ class _LoginPageState extends State<LoginPage> {
   String? errorMessage = '';
   String email = "";
   String password = "";
+  final Key _emailKey = const Key('emailKey');
+  final Key _passwordKey = const Key('passwordKey');
   final _loginFormKey = GlobalKey<FormState>();
 
   Future<void> signInWithEmailAndPassword() async {
@@ -58,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         const PageHeading(title: 'Log-in',),
                         CustomInputField(
+                            key:_emailKey,
                             labelText: 'Email',
                             hintText: 'Your email',
                             validator: (textValue) {
@@ -73,6 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 16,),
                         CustomInputField(
+                          key:_passwordKey,
                           labelText: 'Password',
                           hintText: 'Your password',
                           obscureText: true,

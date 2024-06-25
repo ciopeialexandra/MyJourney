@@ -16,7 +16,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   final GlobalKey keyBudgetSpendingScreen = GlobalKey();
 
   Widget _title() {
-    return const Text('My Journey');
+    return const Text('TripSync');
   }
 
   Widget _textButton(String text, GlobalKey key) {
@@ -40,6 +40,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
   Widget _signOutButton() {
     return TextButton(
       onPressed: () {
+       // soloTripTrace.stop();
+        twoUsersTripTrace.stop();
         signOut();
       },
 

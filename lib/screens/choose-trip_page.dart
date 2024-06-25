@@ -36,20 +36,20 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   late List parts;
   List<Request> requestWait = List.empty(growable: true);
   String msgGlobal = "";
-  late Future<bool> areRequestDetailsGenerated ;
-  late Future<bool> areRequestResultsGenerated ;
-  int swipeNumber = 0;
-  String resultKey = "";
-  late Future<bool> areResultsGeneratedFuture;
-  late Future<void> areResultsCreated;
-  late Future<bool> isRequestCompleted;
-  late Future<void> waitPlanUpdate;
   int indexGlobal = 0;
   String  resultKeyParam = "";
   late Uint8List downloadedImage ;
   final List<String> _generatedImageName = List.empty(growable: true);
   List<String> planDates = List.empty(growable: true);
   String numberOfDays = "";
+  int swipeNumber = 0;
+  String resultKey = "";
+  late Future<bool> areRequestDetailsGenerated ;
+  late Future<bool> areRequestResultsGenerated ;
+  late Future<bool> areResultsGeneratedFuture;
+  late Future<void> areResultsCreated;
+  late Future<bool> isRequestCompleted;
+  late Future<void> waitPlanUpdate;
 
   @override
   void initState() {
@@ -130,26 +130,11 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
           if (resultLocal
               .child("likes")
               .value
-              .toString().contains("0")) {
-            resultData.numberOfLikes = "0";
-          }
-          else if (resultLocal
-              .child("likes")
-              .value
-              .toString().contains("1")) {
-            resultData.numberOfLikes = "1";
-          }
-          if (resultLocal
-              .child("likes")
-              .value
-              .toString().contains("2")) {
-            resultData.numberOfLikes = "2";
-          }
-          if (resultLocal
-              .child("likes")
-              .value
-              .toString().contains("3")) {
-            resultData.numberOfLikes = "3";
+              .toString().isNotEmpty) {
+            resultData.numberOfLikes = resultLocal
+                .child("likes")
+                .value
+                .toString();
           }
           resultList.add(resultData);
         }
@@ -293,41 +278,23 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
     return imgKey;
   }
   void _updateResult() async{
-    if(areResultsGeneratedGlobal){
-      resultKey = resultKeyParam;
-    }
-    String numberOfLikes = "1";
-    String cityAndCountry = "";
-    String itinerary = "";
-    String requestId = "";
-    String image = "";
-    String budgetSpending = "";
-    String finalDate = "";
-    final Map<String, Map> updates = {};
+    if(areResultsGeneratedGlobal){resultKey = resultKeyParam;}
+    String numberOfLikes = "1";String cityAndCountry = "";String itinerary = "";String requestId = "";String image = "";
+    String budgetSpending = "";String finalDate = "";final Map<String, Map> updates = {};
     DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshot = await ref.child('result').get();
       for (var resultLocal in snapshot.children) {
-        if (resultLocal
-            .key == resultKey) {
+        if (resultLocal.key == resultKey) {
           cityAndCountry = resultLocal.child("cityAndCountry").value.toString();
           itinerary = resultLocal.child("itinerary").value.toString();
           requestId = resultLocal.child("requestId").value.toString();
           image = resultLocal.child("image").value.toString();
           budgetSpending = resultLocal.child("budgetSpending").value.toString();
           finalDate = resultLocal.child("finalDate").value.toString();
-          if(resultLocal.child("likes").value!.toString().contains("0")) {
-            numberOfLikes = "1";
-
-          }
-          else if(resultLocal.child("likes").value!.toString().contains("1")) {
-            numberOfLikes = "2";
-          }
-          if(resultLocal.child("likes").value!.toString().contains("2")) {
-            numberOfLikes = "3";
-          }
-        }
-      }
+          if(resultLocal.child("likes").value!.toString().isNotEmpty) {
+            numberOfLikes = (int.parse(resultLocal.child("likes").value!.toString())+ 1).toString();
+          }}}
       if(cityAndCountry.isEmpty){
         cityAndCountry = resultList[indexGlobal].cityAndCountry;
         itinerary = resultList[indexGlobal].itinerary;
@@ -335,19 +302,8 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
         image = resultList[indexGlobal].image;
         budgetSpending = resultList[indexGlobal].budgetSpending;
         finalDate = resultList[indexGlobal].finalDate;
-        if(resultList[indexGlobal].numberOfLikes.contains("0")) {
-          numberOfLikes = "1";
-        }
-        else if(resultList[indexGlobal].numberOfLikes.contains("1")) {
-          numberOfLikes = "2";
-        }
-        if(resultList[indexGlobal].numberOfLikes.contains("2")) {
-          numberOfLikes = "3";
-        }
-      }
-    }catch (error) {
-      log(error.toString());
-    }
+        if(resultList[indexGlobal].numberOfLikes.isNotEmpty) {numberOfLikes = (int.parse(resultList[indexGlobal].numberOfLikes)+ 1).toString();}}
+    }catch (error) {log(error.toString());}
     final postData = {
       "image": image,
       "itinerary": itinerary,
@@ -516,7 +472,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   }
   void _updateRequest() async{
     DatabaseReference ref = FirebaseDatabase.instance.ref();
-    String likesNumber = "0";
+    int likesNumber = 0;
     try {
       DataSnapshot snapshot = await ref.child('result').get();
       for (var resultLocal in snapshot.children) {
@@ -524,8 +480,8 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
             .child("requestId")
             .value!
             .toString() == globalRequest.key) {
-          if(likesNumber.compareTo(resultLocal.child("likes").value.toString())<0){
-            likesNumber = resultLocal.child("likes").value.toString();
+          if(likesNumber < int.parse(resultLocal.child("likes").value.toString())){
+            likesNumber = int.parse(resultLocal.child("likes").value.toString());
           }
         }
       }
@@ -558,7 +514,7 @@ class _ChooseTripPageState extends State<ChooseTripPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("My Journey"),
+          title: const Text("TripSync"),
         ),
         body: Center(
             child: FutureBuilder<bool>(
@@ -830,14 +786,8 @@ Widget waitForRequestDetails(){
                                 if (direction ==
                                     DismissDirection
                                         .endToStart) {
-                                  if(result.numberOfLikes.contains("0")) {
-                                    result.numberOfLikes = "1";
-                                  }
-                                  else if(result.numberOfLikes.contains("1")) {
-                                    result.numberOfLikes = "2";
-                                  }
-                                  else if(result.numberOfLikes.contains("2")) {
-                                    result.numberOfLikes = "3";
+                                  if(result.numberOfLikes.isNotEmpty) {
+                                    result.numberOfLikes = (int.parse(result.numberOfLikes)+ 1).toString();
                                   }
                                   // Handle left swipe
                                   indexGlobal = index;

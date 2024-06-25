@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:myjorurney/auth.dart';
@@ -40,9 +40,13 @@ class _HomePageState extends State<HomePage> {
     favouriteResultList = List.empty(growable: true);
     areResultsGeneratedFuture = _areResultsAlreadyGenerated();
     areFavouritesFound = _isFavourite();
+    twoUsersTripTrace.start();
+    //soloTripTrace.start();
   }
   Future<bool> _areResultsAlreadyGenerated() async {
     //verifies if there are results already generated
+
+// Code you want to trace
     DatabaseReference ref = FirebaseDatabase.instance.ref();
     try {
       DataSnapshot snapshotResult = await ref.child('result').get();
@@ -67,7 +71,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _title() {
-    return const Text('My Journey');
+    return const Text('TripSync');
   }
 
 
@@ -95,6 +99,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int> _isRequest() async {
+    await FirebasePerformance.instance.isPerformanceCollectionEnabled();
     DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
     notificationNumber = 0;
@@ -130,23 +135,13 @@ class _HomePageState extends State<HomePage> {
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
       for (var planLocal in snapshot.children) {
-        if (planLocal
-            .child("userId")
-            .value!
-            .toString() == user?.uid
-            && planLocal
-                .child("voted")
-                .value!
-                .toString() == "yes") {
+        if (planLocal.child("userId").value!.toString() == user?.uid
+            && planLocal.child("voted").value!.toString() == "yes") {
           DataSnapshot snapshot = await ref.child('request').get();
           for (var requestLocal in snapshot.children) {
-            if (requestLocal
-                .child("status")
-                .value!
-                .toString() == "completed") {
+            if (requestLocal.child("status").value!.toString() == "completed") {
               String likes = "0";
-            String requestId = requestLocal
-                  .key.toString();
+              String requestId = requestLocal.key.toString();
               favouriteResultNumber++;
               DataSnapshot snapshot = await ref.child('result').get();
             Result result = Result("", "", "", "","","");
@@ -154,49 +149,25 @@ class _HomePageState extends State<HomePage> {
                 if(resultLocal.child("requestId").value.toString() == requestId) {
                   if(resultLocal.child("likes").value.toString().compareTo(likes)>0) {
                     resultId = resultLocal.key;
-                    result = Result(resultLocal
-                        .child("image")
-                        .value
-                        .toString(),
-                        resultLocal
-                            .child("itinerary")
-                            .value
-                            .toString(),
-                        resultLocal
-                            .child("cityAndCountry")
-                            .value
-                            .toString(), resultId!,
+                    result = Result(resultLocal.child("image").value.toString(), resultLocal.child("itinerary").value.toString(),
+                        resultLocal.child("cityAndCountry").value.toString(), resultId!,
                         resultLocal.child("budgetSpending").value.toString(),resultLocal.child("finalDate").value.toString());
                     likes = resultLocal.child("likes").value.toString();
-                  }
-                }
-              }
+                  }}}
               if(result.cityAndCountry.isNotEmpty) {
                 isDuplicate = false;
                 var imagePath = result.image;
                 result.image =
                 await storageRef.child("images/$imagePath.jpg").getDownloadURL();
                 for(int i=0; i<favouriteResultList.length;i++) {
-                  if (favouriteResultList[i].key.contains(result.key)) {
-                    isDuplicate = true;
-                  }
+                  if (favouriteResultList[i].key.contains(result.key)) {isDuplicate = true;}
                 }
-                if(isDuplicate == false) {
-                  favouriteResultList.add(result);
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (error) {
-      log(error.toString());
-    }
+                if(isDuplicate == false) {favouriteResultList.add(result);}
+              }}}}}} catch (error) {log(error.toString());}
     return favouriteResultNumber;
   }
 
   Future<int> _areRequestDetailsCompleted() async {
-    //verifies if there are any trip requests for this user and returns their number
     DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
     int requestParticipants = 0;
@@ -204,45 +175,21 @@ class _HomePageState extends State<HomePage> {
     try {
       DataSnapshot snapshotPlan = await ref.child('plan').get();
       for (var planLocal in snapshotPlan.children) {
-        if (planLocal
-            .child("userId")
-            .value!
-            .toString() == user?.uid && planLocal
-            .child("budget")
-            .value
-            .toString()
-            .isNotEmpty &&
-            planLocal
-                .child("voted")
-                .value!
-                .toString() == "no"
+        if (planLocal.child("userId").value!.toString() ==
+            user?.uid && planLocal.child("budget").value.toString().isNotEmpty &&
+            planLocal.child("voted").value!.toString() == "no"
         ) {
-          globalRequest.key = planLocal
-              .child("requestId")
-              .value
-              .toString();
+          globalRequest.key = planLocal.child("requestId").value.toString();
            areResultsGeneratedGlobal = await _areResultsAlreadyGenerated();
           requestParticipants = 0;
           for (var planLocal in snapshotPlan.children) {
-            if (planLocal
-                .child("requestId")
-                .value!
-                .toString() == globalRequest.key && planLocal
-                .child("budget")
-                .value
-                .toString()
-                .isEmpty
+            if (planLocal.child("requestId").value!.toString() == globalRequest.key &&
+                planLocal.child("budget").value.toString().isEmpty
             ) {
               return 0;
             }
-            else if (planLocal
-                .child("requestId")
-                .value!
-                .toString() == globalRequest.key && planLocal
-                .child("budget")
-                .value
-                .toString()
-                .isNotEmpty) {
+            else if (planLocal.child("requestId").value!.toString() == globalRequest.key &&
+                planLocal.child("budget").value.toString().isNotEmpty) {
               requestParticipants++;
             }
           }
@@ -355,16 +302,10 @@ class _HomePageState extends State<HomePage> {
 
 
   Future<List<Request>> _setRequestDetails() async{
-    //verifies if there are any trip requests for this user and adds their details to a list
     DatabaseReference ref = FirebaseDatabase.instance.ref();
     User? user = FirebaseAuth.instance.currentUser;
-    String requestId = "";
-    String userIdRequest = "";
-    String userPhoneRequest = "";
-    String userNameRequest = "";
-    String userKeyRequest = "";
-    String userEmailRequest = "";
-    request = [];
+    String requestId = "";String userIdRequest = "";String userPhoneRequest = "";String userNameRequest = "";
+    String userKeyRequest = "";String userEmailRequest = "";request = [];
     Request requestLocal = Request("", [], [],"");
     try {
       DataSnapshot snapshot = await ref.child('plan').get();
@@ -376,67 +317,46 @@ class _HomePageState extends State<HomePage> {
             && planLocal
                 .child("budget")
                 .value!
-                .toString().isEmpty) { //aici cautam daca userul curent are vreun request deschis
+                .toString().isEmpty) {
           Plan localPlan = Plan("", "" ,"","",false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,"");
           requestId = planLocal.child("requestId").value!.toString();
           requestLocal.key = requestId;
           DataSnapshot requestPlan = await ref.child('plan').get();
           localPlan.setPlanKey(planLocal.key);
-          for (var requestLocal in requestPlan.children) { //cautam in db plan-ul userului care a trimis requestul
+          for (var requestLocal in requestPlan.children) {
             if(requestLocal.child("requestId").value!.toString() == requestId&&requestLocal.key!=planLocal.key){
               userIdRequest = requestLocal.child("userId").value!.toString();
-            }
-          }
+            }}
           DataSnapshot requestUser = await ref.child('user').get();
           for (var userLocal in requestUser.children) {
-            if(userLocal.key == userIdRequest ){ //cautam in user user-ul care a trimis requestul
+            if(userLocal.key == userIdRequest ){
               userPhoneRequest = userLocal.child("telephone").value!.toString();
               userNameRequest = userLocal.child("name").value!.toString();
               userKeyRequest = userLocal.key.toString();
               userEmailRequest = userLocal.child("email").value!.toString();
-            }
-          }
+            }}
           setRequest(localPlan, planLocal, requestLocal, userKeyRequest, userNameRequest, userEmailRequest, userPhoneRequest);
-        }
-      }
+        }}
     } catch (error) {
       log(error.toString());
     }
     return request;
   }
 
-  void setRequest(Plan localPlan, DataSnapshot planLocal, Request requestLocal, String userKeyRequest, String userNameRequest, String userEmailRequest, String userPhoneRequest) {
+  void setRequest(Plan localPlan, DataSnapshot planLocal, Request requestLocal, String userKeyRequest, String userNameRequest, String userEmailRequest,
+      String userPhoneRequest) {
       localPlan.days = planLocal.child("days").toString();
     localPlan.date = planLocal.child("date").toString();
     localPlan.budget = planLocal.child("budget").toString();
-    if (planLocal.child("isBeach").toString() == "true") {
-      localPlan.isSwimming = true;
-    }
-    if (planLocal.child("isCity").toString() == "true") {
-      localPlan.isBigCity = true;
-    }
-
-    if (planLocal.child("isNightlife").toString() == "true") {
-      localPlan.isNightlife = true;
-    }
-    if (planLocal.child("isHistorical").toString() == "true") {
-      localPlan.isHistoricalHeritage = true;
-    }
-    if (planLocal.child("isNature").toString() == "true") {
-      localPlan.isNature = true;
-    }
-    if (planLocal.child("isSki").toString() == "true") {
-      localPlan.isSkiing = true;
-    }
-    if (planLocal.child("isTropical").toString() == "true") {
-      localPlan.isTropical = true;
-    }
-    if(planLocal.child("isUnique").value!.toString()=="true") {
-      localPlan.isUnique = true;
-    }
-    if(planLocal.child("isPopular").value!.toString()=="true") {
-      localPlan.isPopular = true;
-    }
+    if (planLocal.child("isBeach").toString() == "true") {localPlan.isSwimming = true;}
+    if (planLocal.child("isCity").toString() == "true") {localPlan.isBigCity = true;}
+    if (planLocal.child("isNightlife").toString() == "true") {localPlan.isNightlife = true;}
+    if (planLocal.child("isHistorical").toString() == "true") {localPlan.isHistoricalHeritage = true;}
+    if (planLocal.child("isNature").toString() == "true") {localPlan.isNature = true;}
+    if (planLocal.child("isSki").toString() == "true") {localPlan.isSkiing = true;}
+    if (planLocal.child("isTropical").toString() == "true") {localPlan.isTropical = true;}
+    if(planLocal.child("isUnique").value!.toString()=="true") {localPlan.isUnique = true;}
+    if(planLocal.child("isPopular").value!.toString()=="true") {localPlan.isPopular = true;}
     if(planLocal.child("isLuxury").value!.toString()=="true") {
       localPlan.isLuxury = true;
     }
@@ -462,6 +382,7 @@ class _HomePageState extends State<HomePage> {
   }
   void navigateToPlan() {
     isPlanRequest = true;
+    isFriendsTrip = false;
     Navigator.push(
       context,
       MaterialPageRoute(

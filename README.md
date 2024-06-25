@@ -1,16 +1,20 @@
-# myjorurney
+# tripsync
+Mobile application for trip recommendation.
 
-A new Flutter project.
+## Installation
+Follow these steps to install and run TripSync on your system.
 
-## Getting Started
+### Prerequisites
+Before the installation make sure you have installed flutter and it works correctly by running flutter doctor command.
+You can use an emulator provided by tools like Android Studio or an android phone.
 
-This project is a starting point for a Flutter application.
+#### Steps
+Clone the repository from: https://github.com/ciopeialexandra/MyJourney, using git clone command or using import from version control .
 
-A few resources to get you started if this is your first Flutter project:
+Import the dependencies by running flutter pub get.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Change the branch from the default main to master, because on this branch is all the implementation.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+After all the dependencies are added and the branch is master, you can run the application.
+
+

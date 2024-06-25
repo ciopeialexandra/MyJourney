@@ -78,7 +78,7 @@ class _AddFriendPageState extends State<AddFriendPage> {
   }
 
   Widget _title() {
-    return const Text("My Journey");
+    return const Text("TripSync");
   }
   @override
   Widget build(BuildContext context) {
